@@ -1,0 +1,33 @@
+{% extends "rateslide/base.html" %}
+{% block body_col2_content %}
+    <h2>{{ CaseList.Name }}</h2>
+    {%  if user.is_authenticated and UserDict.isAdmin %}
+
+        <form action="{% url 'rateslide:submitusercaselist' UserCaseList.id %}" method="post">
+        {% csrf_token %}
+        {{ Cases.management_form }}
+        <table>
+        <tr><td><b>Select</b></td><td><b>Case</b></td></tr>
+        {% for case in Cases %}
+        <tr><td>{{ case.selected }}</td><td>{{ case.id }} {{ case.instance.Name }}</td></tr>
+        {% endfor %}
+        </table>
+        <button id="submitcases" name="submit" type="submit" value="submitcases">Skip cases for user</button>
+        </form>
+
+        <form action="{% url 'rateslide:submitusercaselist' UserCaseList.id %}" method="post">
+        {% csrf_token %}
+        {{ CaseInstances.management_form }}
+        <table>
+        <tr><td><b>Select</b></td><td><b>Status</b></td><td><b>Case</b></td></tr>
+        {% for case in CaseInstances %}
+        <tr><td>{{ case.selected }}</td><td>{{ case.id }} {{ case.instance.Status }}</td><td>{{ case.instance.Case.Name }}</td></tr>
+        {% endfor %}
+        </table>
+        <button id="submitcaseinstances" name="submit" type="submit" value="submitcaseinstances">Delete/Reactivate cases from user</button>
+        </form>
+
+   	{% endif %}
+   	
+   	<hr>
+{%  endblock body_col2_content %}

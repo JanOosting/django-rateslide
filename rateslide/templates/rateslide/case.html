@@ -1,0 +1,232 @@
+{% extends "rateslide/base.html" %}
+        {% load static %}
+        {% block head_css_page %}
+            <link rel="stylesheet" type="text/css" href="{%  static 'rateslide/css/case.css' %}" />
+        {% endblock head_css_page %}
+            
+            {% block body_col1_content %}
+
+                <div id = "thumbnails" class = "thumbnails">
+                	<ul class="form-button-radio">
+                	{% for Slide in Slides %}
+               	       <li>
+                	   {%if forloop.first %}
+                  	       <input id="slide{{ Slide.pk }}" name="slides" class="slide_link" type="radio" checked="checked">	
+                 	   {% else %}
+                  	       <input id="slide{{ Slide.pk }}" name="slides" class="slide_link" type="radio">	
+               	       {% endif %}
+               	       <label for="slide{{ Slide.pk }}" name="slides">{{ Slide.Name }}</label>
+               	       </li>
+                	{% endfor %}
+                	</ul>
+                </div>
+                <div id = "bookmarks" class = "bookmarks">
+                	<br>{% for Bookmark in Case.casebookmark_set.all %}
+                	    <button class="goto_bookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
+                	{% endfor %}
+                	{% if user.is_superuser %}
+    		    		<form id="makebookmark" action="{% url 'rateslide:submitbookmark' %}" method="post">
+                        {% csrf_token %}
+                        {{ newBookmark }}
+  						<button id="submitbookmark" name="submit" type="submit" value="submit" disabled="disabled">Submit</button>
+  						
+                        </form>
+    				{% endif %}
+                </div>
+                <div id = "questions">
+                    {% block body_questions %}
+                        {% load markdown_deux_tags %}
+                        <h2>{{ Case.Name }}</h2>
+                        <hr>
+                        {{ Case.Introduction|markdown }}
+                        <hr>
+                        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+                        <form action="{% url 'rateslide:submitcase' Case.id %}" method="post">
+                        {% csrf_token %}
+                        {% for Question in Questions %}
+                            {{ Question.label|markdown }}
+                            {{ Question }}
+                        {% endfor %} 
+  						<button id="submit" name="submit" type="submit" value="submit">Submit</button>
+  						<button id="submitnew" name="submit" type="submit" value="submitnew">Submit and New</button>
+  						
+                        </form>
+                        <p><a href={% url 'rateslide:caselist' Case.Caselist_id %}>To case list</a></p>
+                    {% endblock body_questions %}
+                </div>
+            {% endblock body_col1_content %}
+
+{% block body_slide %}
+<div id = "slidepane"></div>
+{% endblock body_slide %}
+
+{% block footer_javascript_page %}
+
+<script type="text/javascript" src="{%  static '/histoslide/js/openseadragon.min.js' %}"></script>
+<script type="text/javascript" src="{%  static '/histoslide/js/openseadragon-scalebar.js' %}"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var viewer;
+    var viewer_image;
+    var viewer_is_new;
+    var bm_center;
+    var bm_zoom;
+    var bm_image;
+    var bm_goto;
+    var slidevendor;
+    
+    function open_slide(link) {
+    	// Enable waiting for function to finish
+    	var r = $.Deferred();
+        // Load info objects
+        var image;
+        image=link;
+        // Create viewer if necessary
+        if (!viewer) {
+            viewer = new OpenSeadragon({
+                id: "slidepane",
+                prefixUrl: "/static/images/",
+                showNavigator: true,
+                animationTime: 0.5,
+                blendTime: 0.1,
+                constrainDuringPan: false,
+                maxZoomPixelRatio: 2,
+                minPixelRatio: 0.5,
+                minZoomLevel: 1,
+                visibilityRatio: 1,
+                zoomPerScroll: 2
+            });
+            viewer.addHandler("open", function() {
+                viewer.source.minLevel = 8;
+                /* Start zoomed in, then return to home position after
+                   loading.  Workaround for blurry viewport on initial
+                   load (OpenSeadragon #95). */
+                var center = new OpenSeadragon.Point(0.5,
+                        1 / (2 * viewer.source.aspectRatio));
+                viewer.viewport.zoomTo(2, center, true);
+                viewer_is_new = true;
+                /* Ensure we receive update-viewport events, OpenSeadragon
+                   #94 */
+                viewer.drawer.viewer = viewer;
+            });
+            viewer.addHandler("update-viewport", function() {
+                if (viewer_is_new) {
+                    setTimeout(function() {
+                        if (viewer.viewport) {
+                            viewer.viewport.goHome(false);
+                        }
+                    }, 5);
+                    viewer_is_new = false;
+                }
+            });
+            viewer.addHandler("home", function() {
+                if (bm_goto) {
+                    setTimeout(function() {
+                        if (viewer.viewport) {
+       		        		viewer.viewport.zoomTo(bm_zoom,bm_center, false);
+                        }
+                    }, 200);
+                    bm_goto = false;
+                }
+            });
+            viewer.scalebar({
+				type: OpenSeadragon.ScalebarType.MICROSCOPY,
+                pixelsPerMeter: 1000000,
+                minWidth: "160px",
+                location: OpenSeadragon.ScalebarLocation.BOTTOM_LEFT,
+                xOffset: 5,
+                yOffset: 10,
+                stayInsideImage: true,
+                color: "rgb(150, 150, 150)",
+                fontColor: "rgb(100, 100, 100)",
+                backgroundColor: "rgb(255, 255, 255)",
+                fontSize: "small",
+                barThickness: 2 
+            });
+        }
+
+        // Load slide
+        if (image!=viewer_image) {
+        	$.getJSON(image + ".json", {}, function(slideprop) {
+        		slidevendor = slideprop.vendor;
+         		if (slideprop.mmpx == 0.0) {
+        			viewer.scalebar({
+        				pixelsPerMeter:0.0 
+                    }); 
+             	} else {
+        			viewer.scalebar({
+        				pixelsPerMeter:1000000.0/slideprop.mppx 
+                    });
+                };
+
+    		});
+        	
+            viewer.open(image);
+            viewer_image=image; 
+        } else {
+            if (bm_goto) {
+           	    viewer.viewport.goHome(bm_zoom,false);
+            }
+        }
+    }
+    bm_goto = false;
+    open_slide("/histoslide/{{ Slides.0.pk }}.dzi");
+    
+    
+    $(".slide_link").click(function(ev) {
+    	slideid=$(this).attr("id").substring(5);
+    	open_slide("/histoslide/"+slideid+".dzi");
+    });
+    
+    
+    $('#makebookmark').submit(function() {
+    	// GetCenter, getZoom. Store it somewhere
+    	bm_center = viewer.viewport.getCenter(true);
+    	bm_zoom   = viewer.viewport.getZoom(true);
+    	bm_image  = viewer_image;
+    	$('#id_Case').val("{{ Case.pk }}");
+    	$('#id_Slide').val(viewer_image.replace("/histoslide/","").replace(".dzi",""));
+    	$('#id_CenterX').val(bm_center.x.toString());
+    	$('#id_CenterY').val(bm_center.y.toString());
+    	$('#id_Zoom').val(bm_zoom.toString());
+    	$('#id_order').val("1");
+        return true; // return false to cancel form action
+    });
+    
+    $(".goto_bookmark").click(function(ev) {
+    	$.getJSON("/rateslide/getbookmark/" + $(this).attr("value") + "/", {}, function(bm) {
+    		bm_center = new OpenSeadragon.Point(
+    			bm.CenterX,
+    			bm.CenterY
+    		);
+    		bm_zoom = bm.Zoom;
+    		bm_image = bm.Slide + ".dzi";
+    		bm_goto=true;
+    		$("#slide"+bm.Slide).prop("checked",true);
+    		open_slide("/histoslide/"+bm_image);
+    		// Change selected slide button
+    	});
+    });
+    
+    $('#id_Text').keyup(function () {
+    	// Disable submit button when text is empty 
+    	if ($('#id_Text').val() != '') {
+    		$('#submitbookmark').removeAttr('disabled');
+    	} else {
+    		$('#submitbookmark').attr("disabled","disabled");
+    	};
+    
+    });
+    
+    // CSS doesn't provide a good way to specify a div of height
+    // (100% - height(header))
+    $(window).resize(function() {
+        $('#content').height($(window).height() -
+                    $('#header').outerHeight() - 20);
+    }).resize();
+    
+});
+</script>    
+{% endblock footer_javascript_page %}
+

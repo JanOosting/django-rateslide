@@ -1,0 +1,3 @@
+-e git+https://github.com/JanOosting/django-invitation.git#egg=django_invitation-dev
+-e git+https://github.com/JanOosting/django-histoslide.git#egg=django_histoslide-dev
+-e git+https://github.com/silverfix/django-nested-inlines.git#egg=django_nested_inlines-dev

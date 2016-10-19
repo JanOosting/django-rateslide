@@ -1,0 +1,52 @@
+{% extends "rateslide/base.html" %}
+{% block body_col2_content %}
+    {% load markdown_deux_tags %}
+    <h2>{{ CaseList.Name }}</h2>
+    {%  if user.is_authenticated and UserDict.isAdmin %}
+        <form action="{% url 'rateslide:submitcaselist' CaseList.id %}" method="post">
+        {% csrf_token %}
+        {% for field in CaseListForm %}
+        <div class="caseListFields">
+            {{ field.errors }}
+            <p><b>{{ field.label_tag }}</b></p>
+            <p> {{field}} {{field.help_text}}</p>
+        </div>
+        {% endfor %}
+        <button id="submitcl" name="submit" type="submit" value="submit">Submit</button>
+        </form>	
+        <hr>
+        <a href="{% url 'invite' CaseList.id %}">Invite users</a>
+        <hr>
+        <form action="{% url 'rateslide:submitcaselistusers' CaseList.id %}" method="post">
+        {% csrf_token %}
+        {{ UserFormSet.management_form }}
+        <table>
+        <tr><td><b>Select</b></td><td><b>User</b></td><td><b>Start date</b></td><td><b>Status</b></td><td><b># Completed</b></td></tr>	
+        {% for UserForm in UserFormSet %}
+        <tr><td>{{ UserForm.selected }}</td><td>{{ UserForm.id }} <a href="{% url 'rateslide:usercaselist' UserForm.instance.id %}"> {{ UserForm.instance.User }} </a></td><td>{{ UserForm.instance.StartTime|date:"d-m-Y" }}</td>
+        	<td>{{ UserForm.instance.get_Status_display }}</td><td>{{ UserForm.instance.case_count_completed }} / {{ UserForm.instance.case_count_total }}</td></tr>
+        {% endfor %}
+        </table>
+        <button id="submitactivate" name="submit" type="submit" value="submitactivate">Activate Pending</button>
+        <button id="submitreminder" name="submit" type="submit" value="submitreminder">Send reminder</button>
+        </form>
+   	{% endif %}
+   	
+   	<hr>
+    {{ CaseList.Abstract|markdown }}
+    <hr>
+    {{ CaseList.Description|markdown }}
+{%  endblock body_col2_content %}
+{% block body_col3_content %}
+<h2>Cases</h2>
+<p><a href="{% url 'caseadm:rateslide_case_add' %}">Add case</a></p>
+{% for case in CaseList.case_set.all %}
+<p>{{ case.Name }} <a href="{% url 'rateslide:case' case.id %}">Test case</a>
+	<a href="{% url 'caseadm:rateslide_case_change' case.id %}">Edit case</a>
+</p>
+{% endfor %}
+<hr>
+The fields with <b>'Abstract'</b> and <b>'Description'</b> use markdown for layout
+{% markdown_cheatsheet %}
+{%  endblock body_col3_content %}
+

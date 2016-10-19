@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+{% block html_tag %}<html lang="en-US">{% endblock html_tag %}
+    {% block head %}<head>
+        <title>{% block title %}rateslide example{% endblock title %}</title>
+        {% block head_favicon %}<link rel="icon" href="/static/favicon.ico" type="x-icon" />
+        <link rel="shortcut icon" href="/static/favicon.ico" type="x-icon" />{% endblock head_favicon %}
+        {% block head_meta %}
+            {% block head_meta_author%}{% endblock head_meta_author %}
+            {% block head_meta_charset %}<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />{% endblock head_meta_charset %}
+            {% block head_meta_contentlanguage %}<meta http-equiv="Content-Language" value="en-US" />{% endblock head_meta_contentlanguage %}
+            {% block head_meta_description %}{% endblock head_meta_description %}
+            {% block head_meta_keywords %}{% endblock head_meta_keywords %}
+            {% block head_meta_othertags %}{% endblock head_meta_othertags %}
+            {% block head_meta_refresh %}{% endblock head_meta_refresh %}
+            {% block head_meta_robots %}{% endblock head_meta_robots %}
+        {% endblock head_meta %}
+        {% block head_rss %}{% endblock head_rss %}
+        {% block head_css %}
+            {% block head_css_site %}<link rel="stylesheet" type="text/css" href="/static/css/style.css" />{% endblock head_css_site %}
+            {% block head_css_section %}{% endblock head_css_section %}
+            {% block head_css_page %}{% endblock head_css_page %}
+        {% endblock head_css %}
+        {% block head_section %}{% endblock head_section %}
+        {% block head_page %}{% endblock head_page %}
+    </head>{% endblock head %}
+    {% block body %}<body>
+                   
+        <div id="content">
+        {% block body_content %}
+        	<div id="topbar">
+            {% block body_topbar %}
+                {% if user.is_authenticated %}
+                    <p><i> Welcome, {% firstof user.first_name user.username %} </i>
+                    <b><a href="{% url  'account' %}"> My Account</a></b>
+                    <b><a href="/accounts/logout"> Log out</a></b>
+                    </p> 
+                {% else %}
+                    <p><a href="/accounts/login"> Please log in.</a></p>
+                {% endif %}
+            {% endblock body_topbar %}
+            </div>   
+            <div id="headerbar">
+            {% block body_headerbar %}{% endblock body_headerbar %}
+                   <div id="navbar">
+                    {% block body_navbar %}
+                        <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="{% url  'account' %}">Account</a></li>
+                        </ul>
+                    {% endblock body_navbar %}
+                    </div>
+                    <div id="nameapp">{% block body_nameapp %}{% endblock body_nameapp %} </div>
+            </div>
+            
+        <div id = "col1">
+        {% block body_col1 %}
+            <div id= "col1_content">
+            {% block body_col1_content %}{% endblock body_col1_content %}
+            </div>
+        {% endblock body_col1 %}
+        </div>
+        
+        
+        <div id = "col2">
+        {% block body_col2 %}
+            <div id= "col2_content">
+            {% block body_col2_content %} {% endblock body_col2_content %}
+            </div>
+        {% endblock body_col2 %}
+        </div>
+        
+        <div id = "col3">
+        {% block body_col3 %}
+            <div id= "col3_content">
+            {% block body_col3_content %} {% endblock body_col3_content %}
+            </div>
+        {% endblock body_col3 %}
+        </div>
+        
+        <div id = "slide">
+        	{% block body_slide %}{% endblock body_slide %}
+        </div>
+	  <div id="spacer">{% block body_spacer %}{% endblock body_spacer %}</div>
+          	
+            {% block body_announcements %}{% endblock body_announcements %}
+            {% block body_main %}{% endblock body_main %}
+        
+	  {% endblock body_content %}
+        </div>
+    </body>{% endblock body %}
+    <div id="footer">
+        {% block body_footer %}
+            {% block body_footer_breadcrumb %}{% endblock body_footer_breadcrumb %}
+            {% block body_footer_legal %}{% endblock body_footer_legal %}
+        {% endblock body_footer %}
+        </div>
+    {% block footer %}
+        {% block footer_javascript %}
+            {% block footer_javascript_site %}<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>{% endblock footer_javascript_site %}
+            {% block footer_javascript_section %}{% endblock footer_javascript_section %}
+            {% block footer_javascript_page %}{% endblock footer_javascript_page %}
+        {% endblock footer_javascript %}
+    {% endblock footer %}
+</html>

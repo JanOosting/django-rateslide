@@ -1,0 +1,26 @@
+{% extends "rateslide/base.html" %}
+{% block body_col1_content %}
+    {% load markdown_deux_tags %}
+    <h2>{{ CaseList.Name }}</h2>
+    {%  if user.is_authenticated %}
+     	<p>{{ UserDict.case_count_completed }}/{{ UserDict.case_count_total }} cases done</p>
+    	{% if UserDict.case_count_todo > 0 %}
+    	    <p><br><b><a href="{% url 'rateslide:next-case' CaseList.pk %}">Rate a case</a></b></p>
+   	    {% endif %}
+       	{% if UserDict.canAdmit %}
+            <p><br><b><a href="{% url 'rateslide:apply-for-invitation' CaseList.pk %}">Register for this survey</a></b></p>
+        {% endif %}
+       	{% if UserDict.isAdmin %}
+            <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.pk %}">Administration</a></b></p>
+        {% endif %}
+   	{% endif %}
+   	<hr>
+    {{ CaseList.Abstract|markdown }}
+    <hr>
+    {{ CaseList.Description|markdown }}
+{% endblock body_col1_content %}
+{% block body_col2_content %}
+{% endblock body_col2_content %}
+{% block body_col3_content %}
+{% endblock body_col3_content %}
+
