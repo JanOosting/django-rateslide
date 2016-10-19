@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from rateslide.models import Case, CaseList
 
 class CaseTests(TestCase):
-    fixtures = ['auth.json', 'simplecase.json']
+    fixtures = ['rateslide_auth.json', 'rateslide_simplecase.json']
 
     def setUp(self):
         pass

@@ -1,0 +1,14 @@
+[{"model": "rateslide.caselist", "pk": 1, "fields": {"Name": "Simple Case", "Abstract": "Simple Case Abstract", "Description": "Simple Case Description",
+     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "O", "ObserversPerCase": 0, "Owner": 1,
+     "VisibleForNonUsers": true, "OpenForRegistration": true, "SelfRegistration": true, "StartDate": "2016-10-10T0:0:0Z", "EndDate": "2026-10-10T0:0:0Z", "Status": ""}},
+ {"model": "rateslide.case", "pk": 1, "fields": {"Name": "Case 1", "Caselist": 1, "Order": 1, "Introduction": "Introduction", "Report": ""}},
+ {"model": "rateslide.caseinstance", "pk": 1, "fields": {"Case": 1, "User": 1, "Status": "E", "StartTime": "2016-10-15T08:40:29.574Z", "EndTime": "2016-10-15T08:40:29.574Z"}}, 
+ {"model": "rateslide.question", "pk": 1, "fields": {"Case": 1, "Type": "M", "Order": 1, "Text": "How many legs has a duck", "Required": true, "CorrectAnswer": "2"}}, 
+ {"model": "rateslide.questionitem", "pk": 1, "fields": {"Question": 1, "Order": 1, "Text": "1"}}, 
+ {"model": "rateslide.questionitem", "pk": 2, "fields": {"Question": 1, "Order": 2, "Text": "2"}}, 
+ {"model": "rateslide.questionitem", "pk": 3, "fields": {"Question": 1, "Order": 3, "Text": "3"}}, 
+ {"model": "rateslide.questionitem", "pk": 4, "fields": {"Question": 1, "Order": 4, "Text": "4"}}, 
+ {"model": "rateslide.answer", "pk": 1, "fields": {"CaseInstance": 1, "Question": 1, "AnswerNumeric": 2, "AnswerText": ""}}, 
+ {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 1, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}}, 
+ {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}}
+ ]
