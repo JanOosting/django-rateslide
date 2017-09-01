@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.template import Template
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 
 
 # Copied from
@@ -49,7 +49,7 @@ class ButtonRadioSelect(forms.RadioSelect):
                 label_for = ' for="%s"' % (self.attrs['id'])
             else:
                 label_for = ''
-            choice_label = conditional_escape(force_unicode(self.choice_label))
+            choice_label = conditional_escape(force_text(self.choice_label))
             return mark_safe(u'%s <label%s>%s</label>' % (self.tag(), label_for, choice_label))
 
     class ButtonRadioFieldRenderer(forms.widgets.RadioFieldRenderer):
@@ -64,7 +64,7 @@ class ButtonRadioSelect(forms.RadioSelect):
         def render(self):
             """Outputs a <ul> for this set of radio fields."""
             return mark_safe(u'<ul class="form-button-radio">\n%s\n</ul>'
-                             % u'\n'.join([u'<li>%s</li>' % force_unicode(w) for w in self]))
+                             % u'\n'.join([u'<li>%s</li>' % force_text(w) for w in self]))
 
     renderer = ButtonRadioFieldRenderer
     
