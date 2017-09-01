@@ -4,8 +4,7 @@ from django.forms.models import modelformset_factory
 from django.forms.widgets import HiddenInput
 from django.core.validators import MinValueValidator
 
-from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case
-from models import CaseInstance
+from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance
 from .utils import ButtonRadioSelect
 
 

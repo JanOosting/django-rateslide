@@ -1,6 +1,7 @@
 {% extends "rateslide/base.html" %}
+        {% load static %}
         {% block head_css_page %}
-<link rel="stylesheet" type="text/css" href="/static/css/case.css" />
+            <link rel="stylesheet" type="text/css" href="{% static 'rateslide/css/case.css' %}" />
         {% endblock head_css_page %}
             
             {% block body_col1_content %}
@@ -38,7 +39,7 @@
                         <hr>
                         {{ Case.Introduction|markdown }}
                         <hr>
-                        <p><a href={% url 'rateslide:showcaselist' Case.Caselist_id %}>To case list</a></p>
+                        <p><a href="{% url 'rateslide:showcaselist' Case.Caselist_id %}">To case list</a></p>
 
                     {% endblock body_questions %}
                 </div>
@@ -50,8 +51,8 @@
 
 {% block footer_javascript_page %}
 
-<script type="text/javascript" src="/static/js/openseadragon.min.js"></script>
-<script type="text/javascript" src="/static/js/openseadragon-scalebar.js"></script>
+<script type="text/javascript" src="{% static '/histoslide/js/openseadragon.min.js' %}"></script>
+<script type="text/javascript" src="{% static '/histoslide/js/openseadragon-scalebar.js' %}"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
