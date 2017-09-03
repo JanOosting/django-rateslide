@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from rateslide.models import Case, CaseList
+
 
 class CaseTests(TestCase):
     fixtures = ['rateslide_auth.json', 'rateslide_simplecase.json']
@@ -44,7 +44,8 @@ class CaseTests(TestCase):
         self.assertEqual(response.status_code, 302, 'redirect to login')
         self.client.login(username='user', password='user')
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 404, 'Caselistadmin is only available for admins, status: %s in stead of 404' % response.status_code)
+        self.assertEqual(response.status_code, 404,
+                         'Caselistadmin is exclusive for admins, status: %s in stead of 404' % response.status_code)
         self.client.login(username='admin', password='admin')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -56,15 +57,9 @@ class CaseTests(TestCase):
         self.assertEqual(response.status_code, 302, 'redirect to login')
         self.client.login(username='user', password='user')
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 404, 'Usercaselist is only available for admins, status: %s in stead of 404' % response.status_code)
+        self.assertEqual(response.status_code, 404,
+                         'Usercaselist is exclusive for admins, status: %s in stead of 404' % response.status_code)
         self.client.login(username='admin', password='admin')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/usercaselist.html')
-
-
-
-
-
-
-

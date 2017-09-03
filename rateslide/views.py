@@ -1,7 +1,6 @@
 # Rateslide views
 # Jan Oosting 2013
 # 
-import string
 from json import dumps, loads
 
 from django.shortcuts import render
@@ -77,7 +76,7 @@ def showcaselist(request, caselist_id):
 def caselistadmin(request, caselist_id):
     try:
         cldata = get_caselist_data(request, caselist_id)
-        if not is_caselist_admin(request.user,cldata['CaseList']):
+        if not is_caselist_admin(request.user, cldata['CaseList']):
             raise Http404
         cldata['CaseListForm'] = CaseListForm(instance=cldata['CaseList'])
         cldata['UserFormSet'] = UserCaseListSelectFormSet(queryset=cldata['Users'], initial=[{'selected': u'on', }])
@@ -129,7 +128,7 @@ def usercaselist(request, usercaselist_id):
     try:
         ucl = UserCaseList.objects.get(pk=usercaselist_id)
         cldata = get_caselist_data(request, ucl.CaseList.pk)
-        if not is_caselist_admin(request.user,cldata['CaseList']):
+        if not is_caselist_admin(request.user, cldata['CaseList']):
             raise Http404
         cases = Case.objects.filter(Caselist=ucl.CaseList)
         usercases = CaseInstance.objects.filter(User=ucl.User, Case__in=cases)
@@ -222,7 +221,7 @@ def submitcase(request, case_id):
                 for q_id in request.POST:
                     # Check if id has proper format for question
                     # 0:'question', 1:'R|F', 2:"M|N|O|D|R", 3:numeric
-                    id_elts = string.split(q_id, '_')
+                    id_elts = str.split(q_id, '_')
                     if len(id_elts) == 4:
                         if id_elts[0] == 'question' and id_elts[2] != "R":
                             question = Question.objects.get(pk=id_elts[3])
@@ -237,7 +236,8 @@ def submitcase(request, case_id):
                 else:
                     return next_case(request, cs.Caselist.id)
             else:
-                return render(request, 'rateslide/case.html', {'Case': cs, 'Slides': cs.Slides.all(), 'Questions': form})
+                return render(request, 'rateslide/case.html',
+                              {'Case': cs, 'Slides': cs.Slides.all(), 'Questions': form})
     except Case.DoesNotExist:
         raise Http404
 

@@ -1,11 +1,10 @@
 from django.forms import ModelForm, Form, CharField, IntegerField, TypedChoiceField, DateField, BooleanField
 from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
-from django.forms.widgets import HiddenInput
+from django.forms.widgets import HiddenInput, RadioSelect
 from django.core.validators import MinValueValidator
 
 from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance
-from .utils import ButtonRadioSelect
 
 
 class CaseListForm(ModelForm):
@@ -65,7 +64,7 @@ class QuestionForm(Form):
                 field = TypedChoiceField(
                     label=question.Text,
                     choices=QuestionItem.objects.filter(Question=question.id).values_list('Order', 'Text'),
-                    coerce=int, widget=ButtonRadioSelect)
+                    coerce=int, widget=RadioSelect(attrs={'class': 'form-button-radio'}))
             elif question.Type == Question.DATE: 
                 field = DateField(label=question.Text)
             elif question.Type == Question.REMARK:

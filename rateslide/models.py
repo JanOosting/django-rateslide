@@ -58,7 +58,8 @@ class CaseList(models.Model):
     def cases_completed(self, user_id):
         # get a set of case ids that a user has completed
         user = User.objects.get(pk=user_id)
-        return set(CaseInstance.objects.filter(User=user, Status='E', Case__in=self.cases()).values_list('Case', flat=True))
+        return set(CaseInstance.objects.filter(User=user, Status='E',
+                                               Case__in=self.cases()).values_list('Case', flat=True))
     
     def case_count_completed(self, user_id):
         return len(self.cases_completed(user_id))
@@ -66,7 +67,8 @@ class CaseList(models.Model):
     def cases_skipped(self, user_id):
         # get a set of case ids that a user has completed
         user = User.objects.get(pk=user_id)
-        return set(CaseInstance.objects.filter(User=user, Status='S', Case__in=self.cases()).values_list('Case', flat=True))
+        return set(CaseInstance.objects.filter(User=user, Status='S',
+                                               Case__in=self.cases()).values_list('Case', flat=True))
 
     def case_count_skipped(self, user_id):
         return len(self.cases_skipped(user_id))
