@@ -39,7 +39,7 @@
                         <hr>
                         {{ Case.Introduction|markdown }}
                         <hr>
-                        <p><a href="{% url 'rateslide:showcaselist' Case.Caselist_id %}">To case list</a></p>
+                        <p><a href="{% url 'rateslide:showcaselist' Case.Caselist.Slug %}">To case list</a></p>
 
                     {% endblock body_questions %}
                 </div>

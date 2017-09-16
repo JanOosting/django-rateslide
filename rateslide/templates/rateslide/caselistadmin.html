@@ -15,7 +15,7 @@
         <button id="submitcl" name="submit" type="submit" value="submit">Submit</button>
         </form>	
         <hr>
-        <a href="{% url 'invite' CaseList.id %}">Invite users</a>
+        <a href="{% url 'invite' CaseList.Slug %}">Invite users</a>
         <hr>
         <form action="{% url 'rateslide:submitcaselistusers' CaseList.id %}" method="post">
         {% csrf_token %}

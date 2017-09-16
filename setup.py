@@ -4,6 +4,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     'Django>=1.8',
+    'django-autoslug>=1.9'
 ]
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:

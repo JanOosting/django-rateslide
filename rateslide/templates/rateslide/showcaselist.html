@@ -4,7 +4,7 @@
     <h2>{{ CaseList.Name }}</h2>
     {%  if user.is_authenticated %}
        	{% if UserDict.isAdmin %}
-            <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.pk %}">Administration</a></b></p>
+            <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.Slug %}">Administration</a></b></p>
         {% endif %}
    	{% endif %}
    	<hr>

@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models.signals import m2m_changed 
 from invitation.models import InvitationKey
+from autoslug import AutoSlugField
 
 from histoslide.models import Slide
 
@@ -24,6 +25,7 @@ class CaseList(models.Model):
         (SHOWCASE, 'Show case'),
     )
     Name = models.CharField(max_length=50)
+    Slug = AutoSlugField(populate_from='Name', unique=True, null=True, default=None)
     Abstract = models.TextField()      # This can be entered as markdown
     Description = models.TextField()   # This can be entered as markdown
     InviteMail = models.TextField()
@@ -99,7 +101,7 @@ class CaseList(models.Model):
             else:
                 return -1
             
-    def __unicode__(self):
+    def __str__(self):
         return self.Name
 
 
@@ -114,7 +116,7 @@ class Case(models.Model):
     class Meta:
         ordering = ['Order', 'Name']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.Name
     
     @transaction.atomic
@@ -171,7 +173,7 @@ class Question(models.Model):
     class Meta:
         ordering = ['Order']
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%d %s %s' % (self.Order, self.required_char(), self.Text)
 
     def required_char(self):
@@ -250,7 +252,7 @@ class UserCaseList(models.Model):
     def case_count_total(self):
         return len(self.cases_total())
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s %s' % (self.User.username, self.CaseList.Name)
 
 
@@ -262,7 +264,7 @@ class CaseSlide(models.Model):
     class Meta:
         ordering = ['order']
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s %s' % (self.Case.Name, self.Slide.Name)
     
 
@@ -279,7 +281,7 @@ class CaseBookmark(models.Model):
     class Meta:
         ordering = ['order']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.Text 
 
 

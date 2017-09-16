@@ -5,13 +5,13 @@
     {%  if user.is_authenticated %}
      	<p>{{ UserDict.case_count_completed }}/{{ UserDict.case_count_total }} cases done</p>
     	{% if UserDict.case_count_todo > 0 %}
-    	    <p><br><b><a href="{% url 'rateslide:next-case' CaseList.pk %}">Rate a case</a></b></p>
+    	    <p><br><b><a href="{% url 'rateslide:next-case' CaseList.Slug %}">Rate a case</a></b></p>
    	    {% endif %}
        	{% if UserDict.canAdmit %}
-            <p><br><b><a href="{% url 'rateslide:apply-for-invitation' CaseList.pk %}">Register for this survey</a></b></p>
+            <p><br><b><a href="{% url 'rateslide:apply-for-invitation' CaseList.Slug %}">Register for this survey</a></b></p>
         {% endif %}
        	{% if UserDict.isAdmin %}
-            <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.pk %}">Administration</a></b></p>
+            <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.Slug %}">Administration</a></b></p>
         {% endif %}
    	{% endif %}
    	<hr>

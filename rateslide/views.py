@@ -30,8 +30,17 @@ def is_caselist_admin(user, cl):
     return cl.Owner == user or user.is_staff
 
 
-def get_caselist_data(request, caselist_id):
+def get_caselist_data_by_id(request, caselist_id):
     cl = CaseList.objects.get(pk=caselist_id)
+    return get_caselist_data(request, cl)
+
+
+def get_caselist_data_by_slug(request, slug):
+    cl = CaseList.objects.get(Slug=slug)
+    return get_caselist_data(request, cl)
+
+
+def get_caselist_data(request, cl):
     clu = UserCaseList.objects.filter(CaseList=cl)
     ud = {}
     if request.user.is_authenticated():
@@ -55,17 +64,17 @@ def get_caselist_data(request, caselist_id):
     return {'CaseList': cl, 'Users': clu, 'UserDict': ud}
 
 
-def caselist(request, caselist_id):
+def caselist(request, slug):
     try:
-        cldata = get_caselist_data(request, caselist_id)
+        cldata = get_caselist_data_by_slug(request, slug)
     except CaseList.DoesNotExist:
         raise Http404
     return render(request, 'rateslide/caselist.html', cldata)
 
 
-def showcaselist(request, caselist_id):
+def showcaselist(request, slug):
     try:
-        cldata = get_caselist_data(request, caselist_id)
+        cldata = get_caselist_data_by_slug(request, slug)
     except CaseList.DoesNotExist:
         raise Http404
     return render(request, 'rateslide/showcaselist.html', cldata)
@@ -73,9 +82,9 @@ def showcaselist(request, caselist_id):
 
 @csrf_protect
 @login_required()
-def caselistadmin(request, caselist_id):
+def caselistadmin(request, slug):
     try:
-        cldata = get_caselist_data(request, caselist_id)
+        cldata = get_caselist_data_by_slug(request, slug)
         if not is_caselist_admin(request.user, cldata['CaseList']):
             raise Http404
         cldata['CaseListForm'] = CaseListForm(instance=cldata['CaseList'])
@@ -127,7 +136,7 @@ def submitcaselistusers(request, caselist_id):
 def usercaselist(request, usercaselist_id):
     try:
         ucl = UserCaseList.objects.get(pk=usercaselist_id)
-        cldata = get_caselist_data(request, ucl.CaseList.pk)
+        cldata = get_caselist_data_by_id(request, ucl.CaseList.pk)
         if not is_caselist_admin(request.user, cldata['CaseList']):
             raise Http404
         cases = Case.objects.filter(Caselist=ucl.CaseList)
@@ -193,9 +202,9 @@ def showcase(request, case_id):
 
 
 @login_required()
-def next_case(request, caselist_id):
+def next_case(request, slug):
     # Get a unprocessed case from the user
-    cl = CaseList.objects.get(pk=caselist_id)
+    cl = CaseList.objects.get(Slug=slug)
     if check_usercaselist(request.user, cl):
         todo = cl.get_next_case(request.user.pk)
         if todo >= 0:
@@ -243,9 +252,9 @@ def submitcase(request, case_id):
 
 
 @login_required()
-def apply_for_invitation(request, caselist_id):
+def apply_for_invitation(request, slug):
     # Request to enter a case list
-    cl = CaseList.objects.get(pk=caselist_id)
+    cl = CaseList.objects.get(Slug=slug)
     if check_usercaselist(request.user, cl) == UserCaseList.NONE:
         if cl.SelfRegistration:
             ucl = UserCaseList(User=request.user, CaseList=cl, Status=UserCaseList.ACTIVE)

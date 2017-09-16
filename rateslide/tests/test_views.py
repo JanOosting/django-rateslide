@@ -21,7 +21,7 @@ class CaseTests(TestCase):
         self.assertTemplateUsed(response, 'rateslide/case.html')
 
     def test_caselist_loads(self):
-        url = reverse('rateslide:caselist', kwargs={'caselist_id': 1})
+        url = reverse('rateslide:caselist', kwargs={'slug': 'simple-case'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/caselist.html')
@@ -33,13 +33,13 @@ class CaseTests(TestCase):
         self.assertTemplateUsed(response, 'rateslide/showcase.html')
 
     def test_showcaselist_loads(self):
-        url = reverse('rateslide:showcaselist', kwargs={'caselist_id': 1})
+        url = reverse('rateslide:showcaselist', kwargs={'slug': 'simple-showcase'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/showcaselist.html')
 
     def test_caselistadmin_loads(self):
-        url = reverse('rateslide:caselistadmin', kwargs={'caselist_id': 1})
+        url = reverse('rateslide:caselistadmin', kwargs={'slug': 'simple-case'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302, 'redirect to login')
         self.client.login(username='user', password='user')
