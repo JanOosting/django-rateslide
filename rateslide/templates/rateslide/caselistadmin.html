@@ -1,5 +1,5 @@
 {% extends "rateslide/base.html" %}
-{% block body_col2_content %}
+{% block body_col1_content %}
     {% load markdown_deux_tags %}
     <h2>{{ CaseList.Name }}</h2>
     {%  if user.is_authenticated and UserDict.isAdmin %}
@@ -36,8 +36,8 @@
     {{ CaseList.Abstract|markdown }}
     <hr>
     {{ CaseList.Description|markdown }}
-{%  endblock body_col2_content %}
-{% block body_col3_content %}
+{%  endblock body_col1_content %}
+{% block body_col2_content %}
 <h2>Cases</h2>
 <p><a href="{% url 'caseadm:rateslide_case_add' %}">Add case</a></p>
 {% for case in CaseList.case_set.all %}
@@ -46,6 +46,8 @@
 </p>
 {% endfor %}
 <hr>
+{%  endblock body_col2_content %}
+{% block body_col3_content %}
 The fields with <b>'Abstract'</b> and <b>'Description'</b> use markdown for layout
 {% markdown_cheatsheet %}
 {%  endblock body_col3_content %}

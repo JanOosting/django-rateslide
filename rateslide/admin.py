@@ -78,13 +78,13 @@ class CaseAdmin(NestedModelAdmin):
         
     def response_add(self, request, obj, post_url_continue="../%s/"):
         if '_continue' not in request.POST:
-            return HttpResponseRedirect(reverse('rateslide:caselistadmin', args=(obj.Caselist.id,)))
+            return HttpResponseRedirect(reverse('rateslide:caselistadmin', args=(obj.Caselist.Slug,)))
         else:
             return super(CaseAdmin, self).response_add(request, obj, post_url_continue)
 
     def response_change(self, request, obj):
         if '_continue' not in request.POST:
-            return HttpResponseRedirect(reverse('rateslide:caselistadmin', args=(obj.Caselist.id, )))
+            return HttpResponseRedirect(reverse('rateslide:caselistadmin', args=(obj.Caselist.Slug, )))
         else:
             return super(CaseAdmin, self).response_change(request, obj)    
 

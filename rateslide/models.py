@@ -4,7 +4,7 @@ from random import choice
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db.models.signals import m2m_changed 
+from django.db.models.signals import m2m_changed, post_save
 from invitation.models import InvitationKey
 from autoslug import AutoSlugField
 
@@ -305,3 +305,13 @@ def registrant_m2m_changed(sender, instance, action, reverse, model, pk_set, **k
                 send_usercaselist_mail(ucl, 'welcome')
 
 m2m_changed.connect(registrant_m2m_changed, sender=InvitationKey.registrant.through)
+
+
+def caselist_post_save(sender, instance, created, raw, using, **kwargs):
+    """ Add the owner to the caselistusers
+    """
+    if not raw:
+        ucl, created = UserCaseList.objects.get_or_create(User=instance.Owner, CaseList=instance,
+                                                                  defaults={'Status': UserCaseList.ACTIVE})
+
+post_save.connect(caselist_post_save, sender=CaseList)
