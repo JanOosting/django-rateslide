@@ -164,7 +164,7 @@ select[name=slides] {
 }
 
 ul.form-button-radio {
-	margin-left: 16px;
+	margin-left: 6px;
 }
 
 ul.form-button-radio li {
@@ -172,7 +172,8 @@ ul.form-button-radio li {
 }
 
 ul.form-button-radio input[type="radio"] {
-	display: none
+	opacity: 0;
+    height: 1px;
 }
 
 ul.form-button-radio input[type="radio"]+label {

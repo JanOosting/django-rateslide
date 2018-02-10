@@ -2,7 +2,7 @@ from django.forms import ModelForm, Form, CharField, IntegerField, TypedChoiceFi
 from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
 from django.forms.widgets import HiddenInput, RadioSelect
-from django.core.validators import MinValueValidator
+from django.core.validators import MinLengthValidator
 
 from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance
 
@@ -73,8 +73,6 @@ class QuestionForm(Form):
             if question.Required:
                 tag = "R"
                 field.required = True
-                if question.Type == Question.MULTIPLECHOICE:
-                    field.validators = [MinValueValidator(1)]
             else:
                 tag = "F"
                 field.required = False
