@@ -15,7 +15,7 @@ from histoslide.models import Slide
 
 from .models import Case, Question, CaseInstance, Answer, CaseList, UserCaseList, CaseBookmark, QuestionBookmark
 from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, CaseInstancesSelectFormSet, \
-                   CasesSelectFormSet
+                   CasesSelectFormSet, QuestionForm
 from .utils import send_usercaselist_mail
 
                 
@@ -194,11 +194,9 @@ def showcase(request, case_id):
     try:
         c = Case.objects.get(pk=case_id)
         s = c.Slides.all().order_by('caseslide__order')
-        # q_f = QuestionForm(Question.objects.filter(Case=c.id))
-        bm = CaseBookmarkForm()
     except Case.DoesNotExist:
         raise Http404
-    return render(request, 'rateslide/showcase.html', {'Case': c, 'Slides': s, 'newBookmark': bm})
+    return render(request, 'rateslide/showcase.html', {'Case': c, 'Slides': s})
 
 
 @login_required()
@@ -276,7 +274,11 @@ def casebookmark(request, bookmark_id):
             raise SuspiciousOperation
         try:
             bm_data = loads(request.body)
-            bm = CaseBookmark()
+            bms = CaseBookmark.objects.filter(Case=bm_data['Case'], Text=bm_data['Text'])
+            if len(bms)>0:
+                bm = bms[0]
+            else:
+                bm = CaseBookmark()
             bm.Slide = Slide.objects.get(pk=bm_data['Slide'])
             bm.Case = Case.objects.get(pk=bm_data['Case'])
             bm.CenterX = bm_data['CenterX']
@@ -298,12 +300,15 @@ def casebookmark(request, bookmark_id):
 def questionbookmark(request, bookmark_id):
     # Get a JSON object with bookmark data
     if request.method == 'POST':
-        print(request.content_type)
         if request.content_type != 'application/json':
             raise SuspiciousOperation
         try:
             bm_data = loads(request.body)
-            bm = QuestionBookmark()
+            bms = QuestionBookmark.objects.filter(Question=bm_data['Question'], Text=bm_data['Text'])
+            if len(bms)>0:
+                bm = bms[0]
+            else:
+                bm = QuestionBookmark()
             bm.Slide = Slide.objects.get(pk=bm_data['Slide'])
             bm.Question = Question.objects.get(pk=bm_data['Question'])
             bm.CenterX = bm_data['CenterX']

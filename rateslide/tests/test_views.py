@@ -120,3 +120,28 @@ class BookmarkTests(TestCase):
         self.assertEqual(response.status_code, 200, 'proper json request')
         bm = QuestionBookmark.objects.filter(Text__exact='test post question')
         self.assertEqual(len(bm), 1)
+        self.assertAlmostEqual(bm[0].CenterX, 0.5)
+
+    def test_post_question_bookmark_same_text_updates_bookmark(self):
+        url = reverse('rateslide:questionbookmark', args=[0])
+        self.client.login(username='user', password='user')
+        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.5, 'Zoom':  1.0, 'Text': 'test question twice', 'order': '1',})
+        response = self.client.post(url, json_data, content_type='application/json')
+        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.8 , 'CenterY': 0.8, 'Zoom':  2.0, 'Text': 'test question twice', 'order': '2',})
+        response = self.client.post(url, json_data, content_type='application/json')
+        bm = QuestionBookmark.objects.filter(Text__exact='test question twice')
+        self.assertEqual(len(bm), 1)
+        self.assertAlmostEqual(bm[0].CenterX, 0.8)
+
+    def test_post_case_bookmark_same_text_updates_bookmark(self):
+        url = reverse('rateslide:casebookmark', args=[0])
+        self.client.login(username='user', password='user')
+        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.3, 'Zoom':  1.0, 'Text': 'test case twice', 'order': '1',})
+        response = self.client.post(url, json_data, content_type='application/json')
+        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.8 , 'CenterY': 0.9, 'Zoom':  2.0, 'Text': 'test case twice', 'order': '2',})
+        response = self.client.post(url, json_data, content_type='application/json')
+        bm = CaseBookmark.objects.filter(Text__exact='test case twice')
+        self.assertEqual(len(bm), 1)
+        self.assertAlmostEqual(bm[0].CenterY, 0.9)
+
+
