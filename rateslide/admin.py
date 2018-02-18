@@ -55,13 +55,14 @@ class CaseQuestionItemInline(NestedTabularInline):
 
 class CaseQuestionInline(NestedStackedInline):
     model = Question
+    fields = (('Order', 'Required', 'Type', 'Text', 'CorrectAnswer', ), )
     inlines = [CaseQuestionItemInline, ]
     extra = 2
 
     
 class CaseAdmin(NestedModelAdmin):
     fieldsets = [
-        (None, {'fields': ('Caselist', 'Name', 'Introduction', 'Report', 'Order')}), ]
+        (None, {'fields': ('Caselist', ('Order', 'Name', ), 'Introduction', 'Report', )}), ]
     inlines = [CaseSlideInline, CaseBookmarkInline, CaseQuestionInline, ]
     actions = ['copy_cases']
 

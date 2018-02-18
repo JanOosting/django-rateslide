@@ -4,7 +4,7 @@ from django.forms.models import modelformset_factory
 from django.forms.widgets import HiddenInput, RadioSelect
 from django.core.validators import MinLengthValidator
 
-from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance
+from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance, QuestionBookmark
 
 
 class CaseListForm(ModelForm):
@@ -69,6 +69,9 @@ class QuestionForm(Form):
                 field = DateField(label=question.Text)
             elif question.Type == Question.REMARK:
                 field = CharField(label=question.Text, widget=HiddenInput)
+                # Add a list of bookmarks {pk, Text} to the value attribute of a hidden input
+                field.widget.attrs.update({'question': question.pk,})
+                field.initial = question.bookmarks()
 
             if question.Required:
                 tag = "R"
@@ -89,6 +92,21 @@ class CaseBookmarkForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(CaseBookmarkForm, self).__init__(*args, **kwargs)
         self.fields['Case'].widget = HiddenInput()
+        self.fields['Slide'].widget = HiddenInput()
+        self.fields['CenterX'].widget = HiddenInput()
+        self.fields['CenterY'].widget = HiddenInput()
+        self.fields['Zoom'].widget = HiddenInput()
+        self.fields['order'].widget = HiddenInput()
+
+
+class QuestionBookmarkForm(ModelForm):
+    class Meta:
+        model = QuestionBookmark
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(QuestionBookmarkForm, self).__init__(*args, **kwargs)
+        self.fields['Question'].widget = HiddenInput()
         self.fields['Slide'].widget = HiddenInput()
         self.fields['CenterX'].widget = HiddenInput()
         self.fields['CenterY'].widget = HiddenInput()

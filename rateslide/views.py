@@ -5,16 +5,17 @@ from json import dumps, loads
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.core.urlresolvers import reverse
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 from invitation.forms import InvitationKeyForm
+from histoslide.models import Slide
 
-from .models import Case, Question, CaseInstance, Answer, CaseList, UserCaseList, CaseBookmark
-from .forms import CaseListForm, UserCaseListSelectFormSet, QuestionForm, tempUserFormSet, CaseBookmarkForm, \
-    CaseInstancesSelectFormSet, CasesSelectFormSet
+from .models import Case, Question, CaseInstance, Answer, CaseList, UserCaseList, CaseBookmark, QuestionBookmark
+from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, CaseInstancesSelectFormSet, \
+                   CasesSelectFormSet
 from .utils import send_usercaselist_mail
 
                 
@@ -183,11 +184,10 @@ def case(request, case_id):
             raise Http404
         s = c.Slides.all().order_by('caseslide__order')
         q_f = QuestionForm(Question.objects.filter(Case=c.id))
-        bm = CaseBookmarkForm()
         # Register that user started on this case
     except Case.DoesNotExist:
         raise Http404
-    return render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f, 'newBookmark': bm})
+    return render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f})
 
 
 def showcase(request, case_id):
@@ -268,32 +268,55 @@ def apply_for_invitation(request, slug):
         # User is already registered for this list
         return HttpResponseRedirect('/')
 
-
-def get_bookmark(request, bookmark_id):
+@csrf_exempt
+def casebookmark(request, bookmark_id):
     # Get a JSON object with bookmark data
     if request.method == 'POST':
-        json_data = request.read()
-        bm_data = loads(json_data)
-        bm = CaseBookmark()
-        bm.Slide = bm_data['Slide']
-        bm.Case = bm_data['Case']
-        bm.CenterX = bm_data['CenterX']
-        bm.CenterY = bm_data['CenterY']
-        bm.Zoom = bm_data['Zoom']
-        bm.Text = bm_data['Text']
-        bm.save()
+        if request.content_type != 'application/json':
+            raise SuspiciousOperation
+        try:
+            bm_data = loads(request.body)
+            bm = CaseBookmark()
+            bm.Slide = Slide.objects.get(pk=bm_data['Slide'])
+            bm.Case = Case.objects.get(pk=bm_data['Case'])
+            bm.CenterX = bm_data['CenterX']
+            bm.CenterY = bm_data['CenterY']
+            bm.Zoom = bm_data['Zoom']
+            bm.Text = bm_data['Text']
+            bm.full_clean()
+            bm.save()
+            return HttpResponse(dumps("OK"), content_type="application/json")
+        except:
+            raise SuspiciousOperation
     else:
         bm = CaseBookmark.objects.get(pk=bookmark_id)
         response_data = {'Case': bm.Case.pk, 'Slide': bm.Slide.pk, 'CenterX': bm.CenterX, 'CenterY': bm.CenterY,
                          'Zoom': bm.Zoom, 'Text': bm.Text}
         return HttpResponse(dumps(response_data), content_type="application/json")
 
-    
-@csrf_protect
-@login_required()
-def submitbookmark(request):    
+@csrf_exempt
+def questionbookmark(request, bookmark_id):
+    # Get a JSON object with bookmark data
     if request.method == 'POST':
-        bmf = CaseBookmarkForm(request.POST)
-        if bmf.is_valid():
-            bmf.save()
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        print(request.content_type)
+        if request.content_type != 'application/json':
+            raise SuspiciousOperation
+        try:
+            bm_data = loads(request.body)
+            bm = QuestionBookmark()
+            bm.Slide = Slide.objects.get(pk=bm_data['Slide'])
+            bm.Question = Question.objects.get(pk=bm_data['Question'])
+            bm.CenterX = bm_data['CenterX']
+            bm.CenterY = bm_data['CenterY']
+            bm.Zoom = bm_data['Zoom']
+            bm.Text = bm_data['Text']
+            bm.full_clean()
+            bm.save()
+            return HttpResponse(dumps("OK"), content_type="application/json")
+        except:
+            raise SuspiciousOperation
+    else:
+        bm = QuestionBookmark.objects.get(pk=bookmark_id)
+        response_data = {'Question': bm.Question.pk, 'Slide': bm.Slide.pk, 'CenterX': bm.CenterX, 'CenterY': bm.CenterY,
+                         'Zoom': bm.Zoom, 'Text': bm.Text}
+        return HttpResponse(dumps(response_data), content_type="application/json")

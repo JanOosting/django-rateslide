@@ -17,6 +17,6 @@ urlpatterns = [
     url(r'^showcase/(?P<case_id>\d+)/$', views.showcase, name='showcase'),
     url(r'^nextcase/(?P<slug>.+)/$', views.next_case, name='next-case'),
     url(r'^submitcase/(?P<case_id>\d+)/$', views.submitcase, name='submitcase'),
-    url(r'^getbookmark/(?P<bookmark_id>\d+)/$', views.get_bookmark, name='get_bookmark'),
-    url(r'^submitbookmark/$', views.submitbookmark, name='submitbookmark'),
+    url(r'^casebookmark/(?P<bookmark_id>\d+)/$', views.casebookmark, name='casebookmark'),
+    url(r'^questionbookmark/(?P<bookmark_id>\d+)/$', views.questionbookmark, name='questionbookmark'),
 ]

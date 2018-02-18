@@ -192,6 +192,10 @@ class Question(models.Model):
             questionitems = QuestionItem.objects.filter(Question=self.pk)
             for questionitem in questionitems:
                 questionitem.questionitem_copy(new_question)
+
+    def bookmarks(self):
+        return list(QuestionBookmark.objects.filter(Question=self).order_by('order').values('pk', 'Text'))
+
          
        
 # Items for multiple choice questions
@@ -266,11 +270,10 @@ class CaseSlide(models.Model):
 
     def __str__(self):
         return u'%s %s' % (self.Case.Name, self.Slide.Name)
-    
 
-class CaseBookmark(models.Model):
+
+class SlideBookmark(models.Model):
     # A bookmark as retrieved from openseadragon, getCenter(), getZoom()
-    Case = models.ForeignKey(Case)
     Slide = models.ForeignKey(Slide)
     Text = models.CharField(max_length=50)
     CenterX = models.FloatField(default=0.0)
@@ -280,9 +283,18 @@ class CaseBookmark(models.Model):
 
     class Meta:
         ordering = ['order']
+        abstract = True
 
     def __str__(self):
-        return self.Text 
+        return self.Text
+
+
+class CaseBookmark(SlideBookmark):
+    Case = models.ForeignKey(Case)
+
+
+class QuestionBookmark(SlideBookmark):
+    Question = models.ForeignKey(Question)
 
 
 # Connect Users with Caselist when they respond to invitations

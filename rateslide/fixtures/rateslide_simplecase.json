@@ -14,5 +14,6 @@
  {"model": "rateslide.questionitem", "pk": 4, "fields": {"Question": 1, "Order": 4, "Text": "4"}}, 
  {"model": "rateslide.answer", "pk": 1, "fields": {"CaseInstance": 1, "Question": 1, "AnswerNumeric": 2, "AnswerText": ""}}, 
  {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 1, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}}, 
- {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}}
+ {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
+ {"model": "histoslide.slide", "pk": 1, "fields": {"Name": "Slide 1", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "test/test.tiff"}}
  ]
