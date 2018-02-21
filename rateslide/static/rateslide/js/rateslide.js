@@ -89,3 +89,23 @@ $('.bookmarktext').keyup(function () {
         $("#btn_" + editname).attr("disabled","disabled");
     };
 });
+
+$('.deletequestionbookmark').click(function() {
+    var QuestionId = $(this).val();
+    var bookmarkid = $('#lb_questionbookmark_' + QuestionId).val()
+    $.ajax({
+        url : "/rateslide/questionbookmark/" + bookmarkid + "/",
+        dataType: 'json',
+        contentType: "application/json",
+        type : "DELETE",
+        data : JSON.stringify({
+            'Question' : QuestionId,
+        }),
+        success : function(result){
+            window.location.reload();
+        },
+        error : function (request, textStatus, errorThrown) {
+            alert("Error deleting\nStatus :" + textStatus + "\nError: " + errorThrown)
+        }
+    });
+});

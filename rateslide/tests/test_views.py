@@ -144,4 +144,21 @@ class BookmarkTests(TestCase):
         self.assertEqual(len(bm), 1)
         self.assertAlmostEqual(bm[0].CenterY, 0.9)
 
+    def test_delete_question_bookmark(self):
+        bm=QuestionBookmark(Question=Question.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5, Zoom=1.0, Text='test delete', order=1)
+        bm.save()
+        url = reverse('rateslide:questionbookmark', args=[bm.pk])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404, 'user should be logged in')
+        self.client.login(username='user', password='user')
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404, 'only admins can delete, status: %d in stead of 404' % response.status_code)
+        self.client.login(username='admin', password='admin')
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 200, 'proper deletion')
+        bms=QuestionBookmark.objects.filter(Text='test delete', Question=1)
+        self.assertEqual(len(bms), 0, 'Book mark should be deleted')
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404, 'object should be deleted by previous call')
+
 

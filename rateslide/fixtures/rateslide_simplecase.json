@@ -12,8 +12,10 @@
  {"model": "rateslide.questionitem", "pk": 2, "fields": {"Question": 1, "Order": 2, "Text": "2"}}, 
  {"model": "rateslide.questionitem", "pk": 3, "fields": {"Question": 1, "Order": 3, "Text": "3"}}, 
  {"model": "rateslide.questionitem", "pk": 4, "fields": {"Question": 1, "Order": 4, "Text": "4"}}, 
- {"model": "rateslide.answer", "pk": 1, "fields": {"CaseInstance": 1, "Question": 1, "AnswerNumeric": 2, "AnswerText": ""}}, 
+ {"model": "rateslide.question", "pk": 2, "fields": {"Case": 1, "Type": "R", "Order": 2, "Text": "Remark 1", "Required": false, "CorrectAnswer": ""}},
+ {"model": "rateslide.answer", "pk": 1, "fields": {"CaseInstance": 1, "Question": 1, "AnswerNumeric": 2, "AnswerText": ""}},
  {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 1, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}}, 
  {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
- {"model": "histoslide.slide", "pk": 1, "fields": {"Name": "Slide 1", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "test/test.tiff"}}
+ {"model": "histoslide.slide", "pk": 1, "fields": {"Name": "Slide 1", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "test/test.tiff"}},
+ {"model": "rateslide.caseslide", "pk": 1, "fields": {"Case": 1, "Slide": 1, "order": 1}}
  ]

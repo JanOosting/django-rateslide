@@ -320,6 +320,15 @@ def questionbookmark(request, bookmark_id):
             return HttpResponse(dumps("OK"), content_type="application/json")
         except:
             raise SuspiciousOperation
+    if request.method == 'DELETE':
+        try:
+            bm = QuestionBookmark.objects.get(pk=bookmark_id)
+        except ObjectDoesNotExist:
+            raise Http404
+        if not is_caselist_admin(request.user, bm.Question.Case.Caselist):
+            raise Http404
+        bm.delete()
+        return HttpResponse(dumps("OK"), content_type="application/json")
     else:
         bm = QuestionBookmark.objects.get(pk=bookmark_id)
         response_data = {'Question': bm.Question.pk, 'Slide': bm.Slide.pk, 'CenterX': bm.CenterX, 'CenterY': bm.CenterY,
