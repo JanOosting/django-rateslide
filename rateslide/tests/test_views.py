@@ -161,4 +161,21 @@ class BookmarkTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404, 'object should be deleted by previous call')
 
+    def test_delete_case_bookmark(self):
+        bm=CaseBookmark(Case=Case.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5, Zoom=1.0, Text='test delete 1', order=1)
+        bm.save()
+        url = reverse('rateslide:casebookmark', args=[bm.pk])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404, 'user should be logged in')
+        self.client.login(username='user', password='user')
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404, 'only admins can delete, status: %d in stead of 404' % response.status_code)
+        self.client.login(username='admin', password='admin')
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 200, 'proper deletion')
+        bms=CaseBookmark.objects.filter(Text='test delete 1', Case=1)
+        self.assertEqual(len(bms), 0, 'Book mark should be deleted')
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404, 'object should be deleted by previous call')
+
 

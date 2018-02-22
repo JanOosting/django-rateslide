@@ -90,6 +90,26 @@ $('.bookmarktext').keyup(function () {
     };
 });
 
+$('.deletecasebookmark').click(function() {
+    var CaseId = $(this).val();
+    var bookmarkid = $('#lb_casebookmark').val()
+    $.ajax({
+        url : "/rateslide/casebookmark/" + bookmarkid + "/",
+        dataType: 'json',
+        contentType: "application/json",
+        type : "DELETE",
+        data : JSON.stringify({
+            'Case' : CaseId,
+        }),
+        success : function(result){
+            window.location.reload();
+        },
+        error : function (request, textStatus, errorThrown) {
+            alert("Error deleting\nStatus :" + textStatus + "\nError: " + errorThrown)
+        }
+    });
+});
+
 $('.deletequestionbookmark').click(function() {
     var QuestionId = $(this).val();
     var bookmarkid = $('#lb_questionbookmark_' + QuestionId).val()

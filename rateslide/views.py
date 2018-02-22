@@ -290,6 +290,15 @@ def casebookmark(request, bookmark_id):
             return HttpResponse(dumps("OK"), content_type="application/json")
         except:
             raise SuspiciousOperation
+    if request.method == 'DELETE':
+        try:
+            bm = CaseBookmark.objects.get(pk=bookmark_id)
+        except ObjectDoesNotExist:
+            raise Http404
+        if not is_caselist_admin(request.user, bm.Case.Caselist):
+            raise Http404
+        bm.delete()
+        return HttpResponse(dumps("OK"), content_type="application/json")
     else:
         bm = CaseBookmark.objects.get(pk=bookmark_id)
         response_data = {'Case': bm.Case.pk, 'Slide': bm.Slide.pk, 'CenterX': bm.CenterX, 'CenterY': bm.CenterY,

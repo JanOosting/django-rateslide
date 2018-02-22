@@ -25,9 +25,20 @@
                 	    <button type="button" class="goto_casebookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
                 	{% endfor %}
                 	{% if user.is_superuser %}
+                    <div style="border:1px solid #00D;">
                         <input type="text" class="bookmarktext" name="casebookmark" id="txt_casebookmark" />
                         <button type="button" class="makecasebookmark" id="btn_casebookmark" value="{{ Case.pk }}" disabled="disabled">Make bookmark</button>
+                        {% if Case.casebookmark_set.count > 0 %}
+                            <select id="lb_casebookmark" class="select">
+                            {% for option in Case.casebookmark_set.all %}
+                                <option value="{{ option.pk }}">{{ option.Text}}</option>
+                            {% endfor %}
+                            </select>
+                            <button type="button" class="deletecasebookmark" id="del_casebookmark" value="{{ Case.pk }}">Delete bookmark</button>
+                        {% endif %}
+                    </div>
     				{% endif %}
+
                 </div>
                 <div id = "questions">
                     {% block body_questions %}
@@ -46,20 +57,22 @@
                                 <button type="button" class="goto_questionbookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
                             {% endfor %}
                             {% if user.is_superuser and Question.field.widget.attrs.question > 0 %}
+                            <div style="border:1px solid #00D;">
                                 <input type="text"  class="bookmarktext" name="questionbookmark_{{ Question.field.widget.attrs.question }}" id="txt_questionbookmark_{{ Question.field.widget.attrs.question }}" />
                                 <button type="button" class="makequestionbookmark" id="btn_questionbookmark_{{ Question.field.widget.attrs.question }}" value="{{ Question.field.widget.attrs.question }}" disabled="disabled">Make bookmark</button>
                                 {% if Question.value|length > 0 %}
-                                    <button type="button" class="deletequestionbookmark" id="del_questionbookmark_{{ Question.field.widget.attrs.question }}" value="{{ Question.field.widget.attrs.question }}">Delete bookmark</button>
                                     <select id="lb_questionbookmark_{{ Question.field.widget.attrs.question }}" class="select">
                                     {% for option in Question.value %}
                                         <option value="{{ option.pk }}">{{ option.Text}}</option>
                                     {% endfor %}
                                     </select>
+                                    <button type="button" class="deletequestionbookmark" id="del_questionbookmark_{{ Question.field.widget.attrs.question }}" value="{{ Question.field.widget.attrs.question }}">Delete bookmark</button>
                                 {% endif %}
+                            </div>
                             {% endif %}
                             {{ Question }}
                         {% endfor %}
-                        <br>
+                        <hr>
   						<button id="submit" name="submit" type="submit" value="submit">Submit</button>
   						<button id="submitnew" name="submit" type="submit" value="submitnew">Submit and New</button>
   						
