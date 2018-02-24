@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models.signals import m2m_changed, post_save
 from invitation.models import InvitationKey
-from autoslug import AutoSlugField
+from django_extensions.db.fields import AutoSlugField
 
 from histoslide.models import Slide
 
@@ -33,7 +33,7 @@ class CaseList(models.Model):
     ReminderMail = models.TextField()
     Type = models.CharField(max_length=1, choices=caselist_type_choices)
     ObserversPerCase = models.PositiveIntegerField(default=0, help_text='Enter 0 to have all cases seen by observers')
-    Owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Owner")
+    Owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="Owner")
     VisibleForNonUsers = models.BooleanField(
         help_text='Case shows up on main screen when a user is not assigned to this case list', default=False)
     OpenForRegistration = models.BooleanField(help_text='A user can admit himself to this case list', default=False)
@@ -107,7 +107,7 @@ class CaseList(models.Model):
 
 class Case(models.Model):
     Name = models.CharField(max_length=50)
-    Caselist = models.ForeignKey(CaseList)
+    Caselist = models.ForeignKey(CaseList, on_delete=models.CASCADE)
     Order = models.IntegerField(default=0)
     Introduction = models.TextField()
     Slides = models.ManyToManyField(Slide, through='CaseSlide')
@@ -144,8 +144,8 @@ class CaseInstance(models.Model):
         (SKIPPED, 'Skipped'),
         (ENDED, 'Ended'),
     )
-    Case = models.ForeignKey(Case)
-    User = models.ForeignKey(settings.AUTH_USER_MODEL)
+    Case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    User = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     Status = models.CharField(max_length=1, choices=status_choices)
     StartTime = models.DateTimeField(auto_now_add=True)
     EndTime = models.DateTimeField(auto_now=True)
@@ -163,7 +163,7 @@ class Question(models.Model):
         (NUMERIC, 'Numeric'),
         (DATE, 'Date'),
         (REMARK, 'Remark'),)
-    Case = models.ForeignKey(Case)
+    Case = models.ForeignKey(Case, on_delete=models.CASCADE)
     Type = models.CharField(max_length=1, choices=question_type_choices)
     Order = models.IntegerField()
     Text = models.CharField(max_length=200)
@@ -200,7 +200,7 @@ class Question(models.Model):
        
 # Items for multiple choice questions
 class QuestionItem(models.Model):
-    Question = models.ForeignKey(Question)
+    Question = models.ForeignKey(Question, on_delete=models.CASCADE)
     Order = models.IntegerField()
     Text = models.CharField(max_length=200)
 
@@ -215,8 +215,8 @@ class QuestionItem(models.Model):
 
     
 class Answer(models.Model):
-    CaseInstance = models.ForeignKey(CaseInstance)
-    Question = models.ForeignKey(Question)
+    CaseInstance = models.ForeignKey(CaseInstance, on_delete=models.CASCADE)
+    Question = models.ForeignKey(Question, on_delete=models.CASCADE)
     AnswerNumeric = models.IntegerField(default=0)
     AnswerText = models.TextField(blank=True)
 
@@ -231,8 +231,8 @@ class UserCaseList(models.Model):
         (PENDING, 'Pending'),
         (COMPLETE, 'Complete')
     )
-    User = models.ForeignKey(settings.AUTH_USER_MODEL)
-    CaseList = models.ForeignKey(CaseList)
+    User = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    CaseList = models.ForeignKey(CaseList, on_delete=models.CASCADE)
     Status = models.CharField(max_length=1, choices=status_choices, default=ACTIVE)
     StartTime = models.DateTimeField(auto_now_add=True)
     EndTime = models.DateTimeField(null=True, blank=True)
@@ -261,8 +261,8 @@ class UserCaseList(models.Model):
 
 
 class CaseSlide(models.Model):
-    Case = models.ForeignKey(Case)
-    Slide = models.ForeignKey(Slide)
+    Case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    Slide = models.ForeignKey(Slide, on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
 
     class Meta:
@@ -274,7 +274,7 @@ class CaseSlide(models.Model):
 
 class SlideBookmark(models.Model):
     # A bookmark as retrieved from openseadragon, getCenter(), getZoom()
-    Slide = models.ForeignKey(Slide)
+    Slide = models.ForeignKey(Slide, on_delete=models.CASCADE)
     Text = models.CharField(max_length=50)
     CenterX = models.FloatField(default=0.0)
     CenterY = models.FloatField(default=0.0)
@@ -290,17 +290,17 @@ class SlideBookmark(models.Model):
 
 
 class CaseBookmark(SlideBookmark):
-    Case = models.ForeignKey(Case)
+    Case = models.ForeignKey(Case, on_delete=models.CASCADE)
 
 
 class QuestionBookmark(SlideBookmark):
-    Question = models.ForeignKey(Question)
+    Question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
 
 # Connect Users with Caselist when they respond to invitations
 class CaseListInvitation(models.Model):
-    Caselist = models.ForeignKey(CaseList)
-    Invitation = models.ForeignKey(InvitationKey)
+    Caselist = models.ForeignKey(CaseList, on_delete=models.CASCADE)
+    Invitation = models.ForeignKey(InvitationKey, on_delete=models.CASCADE)
 
 
 def registrant_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):

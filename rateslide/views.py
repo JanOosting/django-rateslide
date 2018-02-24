@@ -6,7 +6,7 @@ from json import dumps, loads
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
 
@@ -44,7 +44,7 @@ def get_caselist_data_by_slug(request, slug):
 def get_caselist_data(request, cl):
     clu = UserCaseList.objects.filter(CaseList=cl)
     ud = {}
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if check_usercaselist(request.user, cl) != UserCaseList.NONE:
             ud['case_count_completed'] = len(cl.cases_completed(request.user.pk))
             ud['case_count_todo'] = len(cl.cases_todo(request.user.pk))
@@ -103,7 +103,7 @@ def submitcaselist(request, caselist_id):
         cl = CaseList.objects.get(pk=caselist_id)
         clf = CaseListForm(request.POST, instance=cl)
         clf.save()
-    return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'caselist_id': caselist_id}))
+    return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'slug': cl.Slug}))
 
 
 @csrf_protect

@@ -1,7 +1,7 @@
 from json import dumps, loads
 
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from histoslide.models import Slide
 from rateslide.models import CaseBookmark, Case, QuestionBookmark, Question
