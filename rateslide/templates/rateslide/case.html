@@ -24,7 +24,7 @@
                 	<br>{% for Bookmark in Case.casebookmark_set.all %}
                 	    <button type="button" class="goto_casebookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
                 	{% endfor %}
-                	{% if user.is_superuser %}
+                	{% if Editor %}
                     <div style="border:1px solid #00D;">
                         <input type="text" class="bookmarktext" name="casebookmark" id="txt_casebookmark" />
                         <button type="button" class="makecasebookmark" id="btn_casebookmark" value="{{ Case.pk }}" disabled="disabled">Make bookmark</button>
@@ -56,7 +56,7 @@
                             {% for Bookmark in Question.value %}
                                 <button type="button" class="goto_questionbookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
                             {% endfor %}
-                            {% if user.is_superuser and Question.field.widget.attrs.question > 0 %}
+                            {% if Editor and Question.field.widget.attrs.question > 0 %}
                             <div style="border:1px solid #00D;">
                                 <input type="text"  class="bookmarktext" name="questionbookmark_{{ Question.field.widget.attrs.question }}" id="txt_questionbookmark_{{ Question.field.widget.attrs.question }}" />
                                 <button type="button" class="makequestionbookmark" id="btn_questionbookmark_{{ Question.field.widget.attrs.question }}" value="{{ Question.field.widget.attrs.question }}" disabled="disabled">Make bookmark</button>

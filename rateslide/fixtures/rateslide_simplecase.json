@@ -1,8 +1,8 @@
 [{"model": "rateslide.caselist", "pk": 1, "fields": {"Name": "Simple Case", "Abstract": "Simple Case Abstract", "Description": "Simple Case Description",
-     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "O", "ObserversPerCase": 0, "Owner": 1,
+     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "O", "ObserversPerCase": 0, "Owner": 3,
      "VisibleForNonUsers": true, "OpenForRegistration": true, "SelfRegistration": true, "StartDate": "2016-10-10T0:0:0Z", "EndDate": "2026-10-10T0:0:0Z", "Status": "", "Slug": "simple-case"}},
  {"model": "rateslide.caselist", "pk": 2, "fields": {"Name": "Simple Showcase", "Abstract": "Simple Showcase Abstract", "Description": "Simple Showcase Description",
-     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "S", "ObserversPerCase": 0, "Owner": 1,
+     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "S", "ObserversPerCase": 0, "Owner": 3,
      "VisibleForNonUsers": true, "OpenForRegistration": true, "SelfRegistration": true, "StartDate": "2016-10-10T0:0:0Z", "EndDate": "2026-10-10T0:0:0Z", "Status": "", "Slug": "simple-showcase"}},
  {"model": "rateslide.case", "pk": 1, "fields": {"Name": "Case 1", "Caselist": 1, "Order": 1, "Introduction": "Introduction Case", "Report": ""}},
  {"model": "rateslide.case", "pk": 2, "fields": {"Name": "Showcase 1", "Caselist": 2, "Order": 1, "Introduction": "Introduction Showcase", "Report": ""}},
@@ -14,8 +14,8 @@
  {"model": "rateslide.questionitem", "pk": 4, "fields": {"Question": 1, "Order": 4, "Text": "4"}}, 
  {"model": "rateslide.question", "pk": 2, "fields": {"Case": 1, "Type": "R", "Order": 2, "Text": "Remark 1", "Required": false, "CorrectAnswer": ""}},
  {"model": "rateslide.answer", "pk": 1, "fields": {"CaseInstance": 1, "Question": 1, "AnswerNumeric": 2, "AnswerText": ""}},
- {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 1, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}}, 
- {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
+ {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
+ {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 3, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
  {"model": "histoslide.slide", "pk": 1, "fields": {"Name": "Slide 1", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "test/test.tiff"}},
  {"model": "rateslide.caseslide", "pk": 1, "fields": {"Case": 1, "Slide": 1, "order": 1}}
  ]

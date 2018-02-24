@@ -183,20 +183,22 @@ def case(request, case_id):
             # TODO: Return message that user is not on caselist
             raise Http404
         s = c.Slides.all().order_by('caseslide__order')
+        editor = is_caselist_admin(request.user, c.Caselist)
         q_f = QuestionForm(Question.objects.filter(Case=c.id))
         # Register that user started on this case
     except Case.DoesNotExist:
         raise Http404
-    return render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f})
+    return render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f, 'Editor': editor})
 
 
 def showcase(request, case_id):
     try:
         c = Case.objects.get(pk=case_id)
         s = c.Slides.all().order_by('caseslide__order')
+        editor = is_caselist_admin(request.user, c.Caselist)
     except Case.DoesNotExist:
         raise Http404
-    return render(request, 'rateslide/showcase.html', {'Case': c, 'Slides': s})
+    return render(request, 'rateslide/showcase.html', {'Case': c, 'Slides': s, 'Editor': editor})
 
 
 @login_required()
