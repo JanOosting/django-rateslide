@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.db import migrations
 
 import django_extensions.db.fields
@@ -8,13 +6,13 @@ import django_extensions.db.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rateslide', '0002_auto'),
+        ('rateslide', '0004_caselist_slug_populate'),
     ]
 
     operations = [
-        migrations.AddField(
+        migrations.AlterField(
             model_name='caselist',
             name='Slug',
-            field=django_extensions.db.fields.AutoSlugField(editable=False, null=True, populate_from='Name'),
+            field=django_extensions.db.fields.AutoSlugField(editable=False, unique=True, populate_from='Name'),
         ),
     ]

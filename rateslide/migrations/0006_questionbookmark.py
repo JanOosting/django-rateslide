@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('histoslide', '0003_slide_ordering'),
-        ('rateslide', '0003_caselist_slug'),
+        ('rateslide', '0005_caselist_slug_unique'),
     ]
 
     operations = [

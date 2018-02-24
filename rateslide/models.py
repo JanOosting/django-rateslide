@@ -25,7 +25,7 @@ class CaseList(models.Model):
         (SHOWCASE, 'Show case'),
     )
     Name = models.CharField(max_length=50)
-    Slug = AutoSlugField(populate_from='Name', unique=True, null=True, default=None)
+    Slug = AutoSlugField(populate_from='Name', unique=True)
     Abstract = models.TextField()      # This can be entered as markdown
     Description = models.TextField()   # This can be entered as markdown
     InviteMail = models.TextField()
