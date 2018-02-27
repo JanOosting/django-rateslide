@@ -2,6 +2,7 @@
 # Jan Oosting 2013
 # 
 from json import dumps, loads
+import logging
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse
@@ -18,7 +19,9 @@ from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, Cas
                    CasesSelectFormSet, QuestionForm
 from .utils import send_usercaselist_mail
 
-                
+
+logger = logging.getLogger(__name__)
+
 def check_usercaselist(user, cl):
     ucl = UserCaseList.objects.filter(User=user, CaseList=cl)
     if ucl.exists():
@@ -241,7 +244,7 @@ def submitcase(request, case_id):
                                 ans.AnswerText = request.POST[q_id]
                             ans.save()
                 if request.POST['submit'] == 'submit':
-                    return HttpResponseRedirect('/')
+                    return HttpResponseRedirect(reverse('rateslide:caselist', kwargs={'slug': cs.Caselist.Slug}))
                 else:
                     return next_case(request, cs.Caselist.id)
             else:

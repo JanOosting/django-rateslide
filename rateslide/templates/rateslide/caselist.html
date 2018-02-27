@@ -20,6 +20,13 @@
     {{ CaseList.Description|markdown }}
 {% endblock body_col1_content %}
 {% block body_col2_content %}
+    {%  if CaseList.Type == "E" %}
+        <h2>Cases</h2>
+        {% for case in CaseList.case_set.all %}
+            <p><a href="{% url 'rateslide:case' case.id %}">{{ case.Name }} </a>
+            </p>
+        {% endfor %}
+    {% endif %}
 {% endblock body_col2_content %}
 {% block body_col3_content %}
 {% endblock body_col3_content %}

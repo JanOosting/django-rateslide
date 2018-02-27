@@ -47,7 +47,6 @@
                         <hr>
                         {{ Case.Introduction|markdown }}
                         <hr>
-                        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
                         <form action="{% url 'rateslide:submitcase' Case.id %}" method="post">
                         {% csrf_token %}
                         {% for Question in Questions %}
