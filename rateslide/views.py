@@ -275,7 +275,7 @@ def casebookmark(request, bookmark_id):
         if request.content_type != 'application/json':
             raise SuspiciousOperation
         try:
-            bm_data = loads(request.body)
+            bm_data = loads(request.body.decode('utf-8'))
             bms = CaseBookmark.objects.filter(Case=bm_data['Case'], Text=bm_data['Text'])
             if len(bms)>0:
                 bm = bms[0]
@@ -314,7 +314,7 @@ def questionbookmark(request, bookmark_id):
         if request.content_type != 'application/json':
             raise SuspiciousOperation
         try:
-            bm_data = loads(request.body)
+            bm_data = loads(request.body.decode('utf-8'))
             bms = QuestionBookmark.objects.filter(Question=bm_data['Question'], Text=bm_data['Text'])
             if len(bms)>0:
                 bm = bms[0]
