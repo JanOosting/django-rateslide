@@ -93,10 +93,19 @@ class BookmarkTests(TestCase):
         json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.5, 'Zoom':  1.0, 'Text': 'test post case', 'order': '1',})
         response = self.client.post(url)
         self.assertEqual(response.status_code, 400, 'non-json request')
+
         response = self.client.post(url, content_type='application/json')
+        self.assertEqual(response['Content-Type'], 'application/json')
         self.assertEqual(response.status_code, 400, 'empty json request')
+        self.assertEqual(loads(response.content)['status'], 'error')
+        self.assertIn('KeyError', loads(response.content)['message'])
+
         response = self.client.post(url, json_data, content_type='application/json')
+        self.assertEqual(response['Content-Type'], 'application/json')
         self.assertEqual(response.status_code, 200, 'proper json request')
+        self.assertEqual(loads(response.content)['status'], 'OK')
+        self.assertEqual(loads(response.content)['message'], '')
+
         bm = CaseBookmark.objects.filter(Text__exact='test post case')
         self.assertEqual(len(bm), 1)
 
@@ -114,10 +123,19 @@ class BookmarkTests(TestCase):
         json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.5, 'Zoom':  1.0, 'Text': 'test post question', 'order': '1',})
         response = self.client.post(url)
         self.assertEqual(response.status_code, 400, 'non-json request')
+
         response = self.client.post(url, content_type='application/json')
+        self.assertEqual(response['Content-Type'], 'application/json')
         self.assertEqual(response.status_code, 400, 'empty json request')
+        self.assertEqual(loads(response.content)['status'], 'error')
+        self.assertIn('KeyError', loads(response.content)['message'])
+
         response = self.client.post(url, json_data, content_type='application/json')
+        self.assertEqual(response['Content-Type'], 'application/json')
         self.assertEqual(response.status_code, 200, 'proper json request')
+        self.assertEqual(loads(response.content)['status'], 'OK')
+        self.assertEqual(loads(response.content)['message'], '')
+
         bm = QuestionBookmark.objects.filter(Text__exact='test post question')
         self.assertEqual(len(bm), 1)
         self.assertAlmostEqual(bm[0].CenterX, 0.5)

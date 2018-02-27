@@ -24,7 +24,8 @@ $('.makecasebookmark').click(function() {
             window.location.reload();
         },
         error : function (request, textStatus, errorThrown) {
-            alert("Error submitting\nStatus :" + textStatus + "\nError: " + errorThrown)
+            messageobj = JSON.parse(request.responseText)
+            alert("Error submitting\nStatus :" + errorThrown + "\nError: " + messageobj.message)
         }
     });
 });
@@ -54,7 +55,8 @@ $('.makequestionbookmark').click(function() {
             window.location.reload();
         },
         error : function (request, textStatus, errorThrown) {
-            alert("Error submitting\nStatus :" + textStatus + "\nError: " + errorThrown)
+            messageobj = JSON.parse(request.responseText)
+            alert("Error submitting\nStatus :" + errorThrown + "\nError: " + messageobj.message)
         }
     });
 });

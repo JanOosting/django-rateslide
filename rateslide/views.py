@@ -5,7 +5,7 @@ from json import dumps, loads
 import logging
 
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, Http404, HttpResponse
+from django.http import HttpResponseRedirect, Http404, HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
@@ -278,7 +278,7 @@ def casebookmark(request, bookmark_id):
         if request.content_type != 'application/json':
             raise SuspiciousOperation
         try:
-            bm_data = loads(request.body)
+            bm_data = loads(request.body.decode('utf-8'))
             bms = CaseBookmark.objects.filter(Case=bm_data['Case'], Text=bm_data['Text'])
             if len(bms)>0:
                 bm = bms[0]
@@ -292,9 +292,9 @@ def casebookmark(request, bookmark_id):
             bm.Text = bm_data['Text']
             bm.full_clean()
             bm.save()
-            return HttpResponse(dumps("OK"), content_type="application/json")
-        except:
-            raise SuspiciousOperation
+            return JsonResponse({'status': 'OK', 'message': ''}, status=200)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': type(e).__name__ +':'+str(e.args)}, status=400)
     if request.method == 'DELETE':
         try:
             bm = CaseBookmark.objects.get(pk=bookmark_id)
@@ -317,7 +317,7 @@ def questionbookmark(request, bookmark_id):
         if request.content_type != 'application/json':
             raise SuspiciousOperation
         try:
-            bm_data = loads(request.body)
+            bm_data = loads(request.body.decode('utf-8'))
             bms = QuestionBookmark.objects.filter(Question=bm_data['Question'], Text=bm_data['Text'])
             if len(bms)>0:
                 bm = bms[0]
@@ -331,9 +331,9 @@ def questionbookmark(request, bookmark_id):
             bm.Text = bm_data['Text']
             bm.full_clean()
             bm.save()
-            return HttpResponse(dumps("OK"), content_type="application/json")
-        except:
-            raise SuspiciousOperation
+            return JsonResponse({'status': 'OK', 'message': ''}, status=200)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': type(e).__name__ + ':' + str(e.args)}, status=400)
     if request.method == 'DELETE':
         try:
             bm = QuestionBookmark.objects.get(pk=bookmark_id)
