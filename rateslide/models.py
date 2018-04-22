@@ -8,7 +8,7 @@ from django.db.models.signals import m2m_changed, post_save
 from invitation.models import InvitationKey
 from django_extensions.db.fields import AutoSlugField
 
-from histoslide.models import Slide
+from histoslide.models import Slide, SlideAnnotation, SlideBookmark
 
 from .utils import send_usercaselist_mail
 
@@ -157,12 +157,14 @@ class Question(models.Model):
     NUMERIC = 'N'
     DATE = 'D'
     REMARK = 'R'
+    LINE = 'L'
     question_type_choices = (
         (MULTIPLECHOICE, 'MultipleChoice'),
         (OPENTEXT, 'Open text'),
         (NUMERIC, 'Numeric'),
         (DATE, 'Date'),
-        (REMARK, 'Remark'),)
+        (REMARK, 'Remark'),
+        (LINE, 'Line'),)
     Case = models.ForeignKey(Case, on_delete=models.CASCADE)
     Type = models.CharField(max_length=1, choices=question_type_choices)
     Order = models.IntegerField()
@@ -221,6 +223,9 @@ class Answer(models.Model):
     AnswerText = models.TextField(blank=True)
 
 
+class AnswerAnnotation(SlideAnnotation):
+    answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
+
 class UserCaseList(models.Model):
     ACTIVE = 'A'
     PENDING = 'P'
@@ -270,23 +275,6 @@ class CaseSlide(models.Model):
 
     def __str__(self):
         return u'%s %s' % (self.Case.Name, self.Slide.Name)
-
-
-class SlideBookmark(models.Model):
-    # A bookmark as retrieved from openseadragon, getCenter(), getZoom()
-    Slide = models.ForeignKey(Slide, on_delete=models.CASCADE)
-    Text = models.CharField(max_length=50)
-    CenterX = models.FloatField(default=0.0)
-    CenterY = models.FloatField(default=0.0)
-    Zoom = models.FloatField(default=1.0)
-    order = models.IntegerField(default=0)
-
-    class Meta:
-        ordering = ['order']
-        abstract = True
-
-    def __str__(self):
-        return self.Text
 
 
 class CaseBookmark(SlideBookmark):

@@ -89,6 +89,7 @@
 
 <script type="text/javascript" src="{%  static '/histoslide/js/openseadragon.min.js' %}"></script>
 <script type="text/javascript" src="{%  static '/histoslide/js/openseadragon-scalebar.js' %}"></script>
+<script type="text/javascript" src="{%  static '/histoslide/js/openseadragon-annotations.js' %}"></script>
 <script type="text/javascript" src="{%  static '/histoslide/js/histoslide.js' %}"></script>
 <script type="text/javascript" src="{%  static '/rateslide/js/rateslide.js' %}"></script>
 
@@ -97,6 +98,7 @@
 $(document).ready(function() {
     bm_goto = false;
     open_slide("/histoslide/{{ Slides.0.pk }}.dzi");
+    initialize_case()
 });
 
 </script>

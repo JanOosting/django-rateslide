@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from invitation.forms import InvitationKeyForm
 from histoslide.models import Slide
 
-from .models import Case, Question, CaseInstance, Answer, CaseList, UserCaseList, CaseBookmark, QuestionBookmark
+from .models import Case, Question, CaseInstance, Answer, AnswerAnnotation, CaseList, UserCaseList, CaseBookmark, QuestionBookmark
 from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, CaseInstancesSelectFormSet, \
                    CasesSelectFormSet, QuestionForm
 from .utils import send_usercaselist_mail
@@ -232,7 +232,7 @@ def submitcase(request, case_id):
                 ci.save()
                 for q_id in request.POST:
                     # Check if id has proper format for question
-                    # 0:'question', 1:'R|F', 2:"M|N|O|D|R", 3:numeric
+                    # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric
                     id_elts = str.split(q_id, '_')
                     if len(id_elts) == 4:
                         if id_elts[0] == 'question' and id_elts[2] != "R":
@@ -240,9 +240,21 @@ def submitcase(request, case_id):
                             ans = Answer(CaseInstance=ci, Question=question)
                             if id_elts[2] in [Question.MULTIPLECHOICE, Question.NUMERIC]:
                                 ans.AnswerNumeric = request.POST[q_id]
+                                ans.save()
+                            elif id_elts[2] == Question.LINE:
+                                # Answer contains a JSON packed annotation
+                                annotation_data = loads(request.POST[q_id])
+                                ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'], annotation_data['length_unit'])
+                                ans.save()
+                                annotation = AnswerAnnotation(answer=ans,
+                                                              Slide=Slide.objects.get(pk=annotation_data['slideid']),
+                                                              Length=annotation_data['length'],
+                                                              LengthUnit=annotation_data['length_unit'],
+                                                              AnnotationJSON=dumps(annotation_data['annotation']))
+                                annotation.save()
                             else:
                                 ans.AnswerText = request.POST[q_id]
-                            ans.save()
+                                ans.save()
                 if request.POST['submit'] == 'submit':
                     return HttpResponseRedirect(reverse('rateslide:caselist', kwargs={'slug': cs.Caselist.Slug}))
                 else:

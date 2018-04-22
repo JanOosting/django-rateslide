@@ -1,0 +1,3 @@
+<button type="button" name="{{ widget.button_name }}" id="{{ widget.button_id }}" value="{{ widget.line_color }}" class="rs-line-input"  style="background-color:{{ widget.line_color }}">{{ widget.button_label }}</button>
+<input type="text" name="{{ widget.length_name }}" id="{{ widget.length_id }}"  disabled="disabled">
+<input type="hidden" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>
