@@ -191,3 +191,10 @@ ul.form-button-radio input[type="radio"]:checked+label {
 	margin-bottom: 5px;
 	width: 300px;
 }
+
+button.rs-line-button {
+	width: 100px;
+    color: black;
+    border-color: black;
+    float: left;
+}

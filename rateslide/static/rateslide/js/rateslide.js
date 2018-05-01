@@ -164,7 +164,7 @@ function initialize_case() {
 };
 
 
-$('.rs-line-input').click(function() {
+$('.rs-line-button').click(function() {
     var line_color =  $(this).val();
     if (current_line === $(this).attr("id").replace("-button","")) {
         current_line = "";
