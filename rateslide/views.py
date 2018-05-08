@@ -3,6 +3,8 @@
 # 
 from json import dumps, loads
 import logging
+import string
+import random
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse, JsonResponse
@@ -10,17 +12,21 @@ from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.conf import settings
 
 from invitation.forms import InvitationKeyForm
 from histoslide.models import Slide
 
-from .models import Case, Question, CaseInstance, Answer, AnswerAnnotation, CaseList, UserCaseList, CaseBookmark, QuestionBookmark
+from .models import Case, Question, CaseInstance, Answer, AnswerAnnotation, CaseList, UserCaseList, CaseBookmark, \
+                   QuestionBookmark
 from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, CaseInstancesSelectFormSet, \
                    CasesSelectFormSet, QuestionForm
 from .utils import send_usercaselist_mail
 
 
 logger = logging.getLogger(__name__)
+
 
 def check_usercaselist(user, cl):
     ucl = UserCaseList.objects.filter(User=user, CaseList=cl)
@@ -101,9 +107,9 @@ def caselistadmin(request, slug):
 
 @csrf_protect
 @login_required()
-def submitcaselist(request, caselist_id):    
+def submitcaselist(request, caselist_id):
+    cl = CaseList.objects.get(pk=caselist_id)
     if request.method == 'POST':
-        cl = CaseList.objects.get(pk=caselist_id)
         clf = CaseListForm(request.POST, instance=cl)
         clf.save()
     return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'slug': cl.Slug}))
@@ -177,21 +183,58 @@ def submitusercaselist(request, usercaselist_id):
     return HttpResponseRedirect(reverse('rateslide:usercaselist', kwargs={'usercaselist_id': usercaselist_id}))
 
 
+def random_string(length):
+    return ''.join(random.choice(string.ascii_letters) for _ in range(length))
+
+
+def get_cookie_user(request):
+    if "slideobs_user" in request.COOKIES:
+        users = User.objects.filter(username=request.COOKIES["slideobs_user"])
+        if users.count() == 1:
+            return users[0]
+        else:
+            raise Http404
+    else:
+        # Firsttime access, create a new session user
+        user = User.objects.create_user(username=random_string(30), first_name='Anonymous', last_name='User')
+        request.COOKIES['slideobs_user'] = user.username
+        return user
+
+
+def get_case_user(request, cl):
+    if request.user.is_authenticated:
+        return request.user
+    else:
+        if cl.VisibleForNonUsers:
+            # Allow anonymous access
+            user = get_cookie_user(request)
+            if check_usercaselist(user, cl) != UserCaseList.ACTIVE:
+                UserCaseList.objects.create(User=user, CaseList=cl, Status=UserCaseList.ACTIVE)
+            return user
+        else:
+            return None
+
+
 @csrf_protect
-@login_required()
 def case(request, case_id):
     try:
         c = Case.objects.get(pk=case_id)
-        if check_usercaselist(request.user, c.Caselist) != UserCaseList.ACTIVE:
+        user = get_case_user(request, c.Caselist)
+        if not user:
+            return HttpResponseRedirect(settings.LOGIN_URL)
+        if check_usercaselist(user, c.Caselist) != UserCaseList.ACTIVE:
             # TODO: Return message that user is not on caselist
             raise Http404
         s = c.Slides.all().order_by('caseslide__order')
-        editor = is_caselist_admin(request.user, c.Caselist)
+        editor = is_caselist_admin(user, c.Caselist)
         q_f = QuestionForm(Question.objects.filter(Case=c.id))
         # Register that user started on this case
     except Case.DoesNotExist:
         raise Http404
-    return render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f, 'Editor': editor})
+    response = render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f, 'Editor': editor})
+    if 'slideobs_user' in request.COOKIES and user.email == '':
+        response.set_cookie('slideobs_user', user.username)
+    return response
 
 
 def showcase(request, case_id):
@@ -244,7 +287,8 @@ def submitcase(request, case_id):
                             elif id_elts[2] == Question.LINE:
                                 # Answer contains a JSON packed annotation
                                 annotation_data = loads(request.POST[q_id])
-                                ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'], annotation_data['length_unit'])
+                                ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'],
+                                                                      annotation_data['length_unit'])
                                 ans.save()
                                 annotation = AnswerAnnotation(answer=ans,
                                                               Slide=Slide.objects.get(pk=annotation_data['slideid']),
@@ -283,6 +327,7 @@ def apply_for_invitation(request, slug):
         # User is already registered for this list
         return HttpResponseRedirect('/')
 
+
 @csrf_exempt
 def casebookmark(request, bookmark_id):
     # Get a JSON object with bookmark data
@@ -292,7 +337,7 @@ def casebookmark(request, bookmark_id):
         try:
             bm_data = loads(request.body.decode('utf-8'))
             bms = CaseBookmark.objects.filter(Case=bm_data['Case'], Text=bm_data['Text'])
-            if len(bms)>0:
+            if len(bms) > 0:
                 bm = bms[0]
             else:
                 bm = CaseBookmark()
@@ -306,7 +351,7 @@ def casebookmark(request, bookmark_id):
             bm.save()
             return JsonResponse({'status': 'OK', 'message': ''}, status=200)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': type(e).__name__ +':'+str(e.args)}, status=400)
+            return JsonResponse({'status': 'error', 'message': type(e).__name__ + ':' + str(e.args)}, status=400)
     if request.method == 'DELETE':
         try:
             bm = CaseBookmark.objects.get(pk=bookmark_id)
@@ -322,6 +367,7 @@ def casebookmark(request, bookmark_id):
                          'Zoom': bm.Zoom, 'Text': bm.Text}
         return HttpResponse(dumps(response_data), content_type="application/json")
 
+
 @csrf_exempt
 def questionbookmark(request, bookmark_id):
     # Get a JSON object with bookmark data
@@ -331,7 +377,7 @@ def questionbookmark(request, bookmark_id):
         try:
             bm_data = loads(request.body.decode('utf-8'))
             bms = QuestionBookmark.objects.filter(Question=bm_data['Question'], Text=bm_data['Text'])
-            if len(bms)>0:
+            if len(bms) > 0:
                 bm = bms[0]
             else:
                 bm = QuestionBookmark()

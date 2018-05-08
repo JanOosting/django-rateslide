@@ -2,9 +2,10 @@ from json import dumps, loads
 
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 from histoslide.models import Slide
-from rateslide.models import CaseBookmark, Case, QuestionBookmark, Question
+from rateslide.models import CaseBookmark, Case, QuestionBookmark, Question, CaseList
 
 
 class CaseTests(TestCase):
@@ -17,6 +18,10 @@ class CaseTests(TestCase):
         pass
 
     def test_case_loads(self):
+        usercount = User.objects.count()
+        cl = CaseList.objects.get(pk=1)
+        cl.VisibleForNonUsers = False
+        cl.save()
         url = reverse('rateslide:case', kwargs={'case_id': 1})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302, 'redirect to login')
@@ -24,6 +29,24 @@ class CaseTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/case.html')
+        self.assertEqual(User.objects.count(), usercount, 'Usercount should stay the same')
+
+    def test_case_visiblefornonusers_allows_anonymous(self):
+        usercount = User.objects.count()
+        cl = CaseList.objects.get(pk=1)
+        cl.VisibleForNonUsers = True
+        cl.save()
+        url = reverse('rateslide:case', kwargs={'case_id': 1})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'rateslide/case.html')
+        self.assertEqual(User.objects.count(), usercount+1, 'A anonymous user should be created')
+        url = reverse('rateslide:case', kwargs={'case_id': 3})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(User.objects.count(), usercount+1, 'In a second case the same user should be used')
+        user = User.objects.get(first_name='Anonymous')
+        self.assertEqual(len(user.username), 30, 'username:%s length is not 30' % user.username)
 
     def test_caselist_loads(self):
         url = reverse('rateslide:caselist', kwargs={'slug': 'simple-case'})
@@ -80,7 +103,8 @@ class BookmarkTests(TestCase):
         pass
 
     def test_get_case_bookmark_json(self):
-        bm=CaseBookmark(Case=Case.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5, Zoom=1.0, Text='test get', order=1)
+        bm = CaseBookmark(Case=Case.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5,
+                          Zoom=1.0, Text='test get', order=1)
         bm.save()
         url = reverse('rateslide:casebookmark', args=[bm.pk])
         response = self.client.get(url)
@@ -90,7 +114,8 @@ class BookmarkTests(TestCase):
     def test_post_case_bookmark_empty_post(self):
         url = reverse('rateslide:casebookmark', args=[0])
         self.client.login(username='user', password='user')
-        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.5, 'Zoom':  1.0, 'Text': 'test post case', 'order': '1',})
+        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.5, 'CenterY': 0.5,
+                           'Zoom':  1.0, 'Text': 'test post case', 'order': '1', })
         response = self.client.post(url)
         self.assertEqual(response.status_code, 400, 'non-json request')
 
@@ -110,7 +135,8 @@ class BookmarkTests(TestCase):
         self.assertEqual(len(bm), 1)
 
     def test_get_question_bookmark_json(self):
-        bm=QuestionBookmark(Question=Question.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5, Zoom=1.0, Text='test get', order=1)
+        bm = QuestionBookmark(Question=Question.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5,
+                              CenterY=0.5, Zoom=1.0, Text='test get', order=1)
         bm.save()
         url = reverse('rateslide:questionbookmark', args=[bm.pk])
         response = self.client.get(url)
@@ -120,7 +146,8 @@ class BookmarkTests(TestCase):
     def test_post_question_bookmark_empty_post(self):
         url = reverse('rateslide:questionbookmark', args=[0])
         self.client.login(username='user', password='user')
-        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.5, 'Zoom':  1.0, 'Text': 'test post question', 'order': '1',})
+        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.5, 'CenterY': 0.5, 'Zoom':  1.0,
+                           'Text': 'test post question', 'order': '1', })
         response = self.client.post(url)
         self.assertEqual(response.status_code, 400, 'non-json request')
 
@@ -143,10 +170,12 @@ class BookmarkTests(TestCase):
     def test_post_question_bookmark_same_text_updates_bookmark(self):
         url = reverse('rateslide:questionbookmark', args=[0])
         self.client.login(username='user', password='user')
-        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.5, 'Zoom':  1.0, 'Text': 'test question twice', 'order': '1',})
-        response = self.client.post(url, json_data, content_type='application/json')
-        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.8 , 'CenterY': 0.8, 'Zoom':  2.0, 'Text': 'test question twice', 'order': '2',})
-        response = self.client.post(url, json_data, content_type='application/json')
+        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.5, 'CenterY': 0.5, 'Zoom':  1.0,
+                           'Text': 'test question twice', 'order': '1', })
+        self.client.post(url, json_data, content_type='application/json')
+        json_data = dumps({'Question': '1', 'Slide': 1, 'CenterX': 0.8, 'CenterY': 0.8, 'Zoom':  2.0,
+                           'Text': 'test question twice', 'order': '2', })
+        self.client.post(url, json_data, content_type='application/json')
         bm = QuestionBookmark.objects.filter(Text__exact='test question twice')
         self.assertEqual(len(bm), 1)
         self.assertAlmostEqual(bm[0].CenterX, 0.8)
@@ -154,46 +183,50 @@ class BookmarkTests(TestCase):
     def test_post_case_bookmark_same_text_updates_bookmark(self):
         url = reverse('rateslide:casebookmark', args=[0])
         self.client.login(username='user', password='user')
-        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.5 , 'CenterY': 0.3, 'Zoom':  1.0, 'Text': 'test case twice', 'order': '1',})
-        response = self.client.post(url, json_data, content_type='application/json')
-        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.8 , 'CenterY': 0.9, 'Zoom':  2.0, 'Text': 'test case twice', 'order': '2',})
-        response = self.client.post(url, json_data, content_type='application/json')
+        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.5, 'CenterY': 0.3, 'Zoom':  1.0,
+                           'Text': 'test case twice', 'order': '1', })
+        self.client.post(url, json_data, content_type='application/json')
+        json_data = dumps({'Case': '1', 'Slide': 1, 'CenterX': 0.8, 'CenterY': 0.9, 'Zoom':  2.0,
+                           'Text': 'test case twice', 'order': '2', })
+        self.client.post(url, json_data, content_type='application/json')
         bm = CaseBookmark.objects.filter(Text__exact='test case twice')
         self.assertEqual(len(bm), 1)
         self.assertAlmostEqual(bm[0].CenterY, 0.9)
 
     def test_delete_question_bookmark(self):
-        bm=QuestionBookmark(Question=Question.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5, Zoom=1.0, Text='test delete', order=1)
+        bm = QuestionBookmark(Question=Question.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5,
+                              CenterY=0.5, Zoom=1.0, Text='test delete', order=1)
         bm.save()
         url = reverse('rateslide:questionbookmark', args=[bm.pk])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404, 'user should be logged in')
         self.client.login(username='user', password='user')
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, 404, 'only admins can delete, status: %d in stead of 404' % response.status_code)
+        self.assertEqual(response.status_code, 404,
+                         'only admins can delete, status: %d in stead of 404' % response.status_code)
         self.client.login(username='admin', password='admin')
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 200, 'proper deletion')
-        bms=QuestionBookmark.objects.filter(Text='test delete', Question=1)
+        bms = QuestionBookmark.objects.filter(Text='test delete', Question=1)
         self.assertEqual(len(bms), 0, 'Book mark should be deleted')
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404, 'object should be deleted by previous call')
 
     def test_delete_case_bookmark(self):
-        bm=CaseBookmark(Case=Case.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5, CenterY=0.5, Zoom=1.0, Text='test delete 1', order=1)
+        bm = CaseBookmark(Case=Case.objects.get(pk=1), Slide=Slide.objects.get(pk=1), CenterX=0.5,
+                          CenterY=0.5, Zoom=1.0, Text='test delete 1', order=1)
         bm.save()
         url = reverse('rateslide:casebookmark', args=[bm.pk])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404, 'user should be logged in')
         self.client.login(username='user', password='user')
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, 404, 'only admins can delete, status: %d in stead of 404' % response.status_code)
+        self.assertEqual(response.status_code, 404,
+                         'only admins can delete, status: %d in stead of 404' % response.status_code)
         self.client.login(username='admin', password='admin')
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 200, 'proper deletion')
-        bms=CaseBookmark.objects.filter(Text='test delete 1', Case=1)
+        bms = CaseBookmark.objects.filter(Text='test delete 1', Case=1)
         self.assertEqual(len(bms), 0, 'Book mark should be deleted')
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404, 'object should be deleted by previous call')
-
-
