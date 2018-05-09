@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 
 from histoslide.models import Slide
-from rateslide.models import CaseBookmark, Case, QuestionBookmark, Question, CaseList
+from rateslide.models import CaseBookmark, Case, CaseInstance, QuestionBookmark, Question, CaseList, Answer
 
 
 class CaseTests(TestCase):
@@ -30,6 +30,22 @@ class CaseTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/case.html')
         self.assertEqual(User.objects.count(), usercount, 'Usercount should stay the same')
+
+    def test_case_post(self):
+        cl = CaseList.objects.get(pk=1)
+        cl.VisibleForNonUsers = False
+        cl.save()
+        url = reverse('rateslide:submitcase', kwargs={'case_id': 1})
+        response = self.client.post(url, {'question_R_M_1': '1', 'question_R_O_3': 'Test'})
+        self.assertEqual(response.status_code, 404, 'Error')
+        self.client.login(username='user', password='user')
+        response = self.client.post(url, {'question_R_M_1': '1', 'question_R_O_3': 'Test', 'submit': 'submit', })
+        self.assertEqual(response.status_code, 302)
+        ci = CaseInstance.objects.filter(Case__id=1, User=User.objects.get(username='user'))
+        self.assertEqual(ci.count(), 1, 'case was only answered once')
+        ans = Answer.objects.filter(CaseInstance = ci[0].pk)
+        self.assertEqual(ans.count(), 2, 'should be 2 questions in case')
+        self.assertEqual(ans[0].AnswerText, 'Test')
 
     def test_case_visiblefornonusers_allows_anonymous(self):
         usercount = User.objects.count()

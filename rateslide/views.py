@@ -187,8 +187,8 @@ def random_string(length):
     return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
 
-def get_cookie_user(request):
-    if "slideobs_user" in request.COOKIES:
+def get_cookie_user(request, mustexist):
+    if "slideobs_user" in request.COOKIES or mustexist:
         users = User.objects.filter(username=request.COOKIES["slideobs_user"])
         if users.count() == 1:
             return users[0]
@@ -201,13 +201,13 @@ def get_cookie_user(request):
         return user
 
 
-def get_case_user(request, cl):
+def get_case_user(request, cl, mustexist):
     if request.user.is_authenticated:
         return request.user
     else:
         if cl.VisibleForNonUsers:
             # Allow anonymous access
-            user = get_cookie_user(request)
+            user = get_cookie_user(request, mustexist)
             if check_usercaselist(user, cl) != UserCaseList.ACTIVE:
                 UserCaseList.objects.create(User=user, CaseList=cl, Status=UserCaseList.ACTIVE)
             return user
@@ -219,7 +219,7 @@ def get_case_user(request, cl):
 def case(request, case_id):
     try:
         c = Case.objects.get(pk=case_id)
-        user = get_case_user(request, c.Caselist)
+        user = get_case_user(request, c.Caselist, False)
         if not user:
             return HttpResponseRedirect(settings.LOGIN_URL)
         if check_usercaselist(user, c.Caselist) != UserCaseList.ACTIVE:
@@ -267,12 +267,12 @@ def submitcase(request, case_id):
         if request.method == 'POST':
             # Check if case has been registered by user
             cs = Case.objects.get(pk=case_id)
-            if not check_usercaselist(request.user, cs.Caselist):
+            user = get_case_user(request, cs.Caselist, True)
+            if not (check_usercaselist(user, cs.Caselist) and user):
                 raise Http404
             form = QuestionForm(Question.objects.filter(Case=cs.id), request.POST)
             if form.is_valid():
-                ci = CaseInstance(Case=cs, User=request.user, Status='E')
-                ci.save()
+                ci = CaseInstance.objects.create(Case=cs, User=user, Status='E')
                 for q_id in request.POST:
                     # Check if id has proper format for question
                     # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric
