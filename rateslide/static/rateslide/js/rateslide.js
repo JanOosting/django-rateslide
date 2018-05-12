@@ -136,31 +136,48 @@ var current_line = "";
 
 
 function initialize_case() {
-    annotations = new OpenSeadragon.Annotations({ viewer });
-    // annotations.setEnable(false);
-    annotations.model.addHandler('ANNOTATIONRELEASE_EVENT', (annotation) => {
-        var unitname = "px";
-        if (current_line) {
-            var l = annotations.getLength(annotation);
-            if (viewer.scalebarInstance) {
-                if (viewer.scalebarInstance.pixelsPerMeter !== 0) {
-                    l = 1000 * (l / viewer.scalebarInstance.pixelsPerMeter);
-                    unitname="mm"
-                } else {
-                    unitname="px"
+    if (!annotations) {
+        annotations = new OpenSeadragon.Annotations({viewer});
+        annotations.EnableControls(false);
+        annotations.model.addHandler('ANNOTATIONRELEASE_EVENT', (annotation) => {
+            var unitname = "px";
+            if (current_line) {
+                var l = annotations.getLength(annotation);
+                if (viewer.scalebarInstance) {
+                    if (viewer.scalebarInstance.pixelsPerMeter !== 0) {
+                        l = 1000 * (l / viewer.scalebarInstance.pixelsPerMeter);
+                        unitname = "mm"
+                    } else {
+                        unitname = "px"
+                    }
                 }
-            };
-            // This object is meant for histoslide-annotation model
-            var line_object = {
-              slideid: get_slideid(viewer_image) ,
-              length: l,
-              length_unit: unitname,
-              annotation: annotation.slice(0, 2),
-            };
-            document.getElementById(current_line + "-length").value = l.toPrecision(3) + " " + unitname;
-            document.getElementById(current_line).value = JSON.stringify(line_object);
-        };
-    });
+                // This object is meant for histoslide-annotation model
+                var line_object = {
+                    slideid: get_slideid(viewer_image),
+                    length: l,
+                    length_unit: unitname,
+                    annotation: annotation.slice(0, 2),
+                };
+                document.getElementById(current_line + "-length").value = l.toPrecision(3) + " " + unitname;
+                document.getElementById(current_line).value = JSON.stringify(line_object);
+            }
+        });
+        viewer.addHandler('open', () => {
+            // Check if there are annotations for this image
+            const linefields = document.getElementsByClassName('rs-line-value');
+            var slide_annotations = []
+            for (let index = 0; index < linefields.length; index += 1) {
+                if (linefields[index].value !== "") {
+                    const line_object = JSON.parse(linefields[index].value);
+                    if (line_object.slideid == get_slideid(viewer_image)) {
+                        line_object.annotation.push(linefields[index].name);
+                        slide_annotations.push(line_object.annotation);
+                    }
+                }
+            }
+            annotations.setAnnotations(slide_annotations);
+        });
+    }
 };
 
 
@@ -168,12 +185,13 @@ $('.rs-line-button').click(function() {
     var line_color =  $(this).val();
     if (current_line === $(this).attr("id").replace("-button","")) {
         current_line = "";
-        annotations.setEnable(false);
+        annotations.EnableControls(false);
     } else {
         current_line = $(this).attr("id").replace("-button","");
-        annotations.setEnable(true);
-        annotations.model.annotationcolor = line_color;
-        annotations.model.annotationname = current_line;
+        annotations.EnableControls(true);
+        annotations.setAnnotationColor(line_color);
+        annotations.setAnnotationName(current_line);
+        annotations.setMode("LINEDRAW");
     };
 
 });
