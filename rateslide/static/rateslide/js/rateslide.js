@@ -170,7 +170,7 @@ function initialize_case() {
                 if (linefields[index].value !== "") {
                     const line_object = JSON.parse(linefields[index].value);
                     if (line_object.slideid == get_slideid(viewer_image)) {
-                        line_object.annotation.push(linefields[index].name);
+                        line_object.annotation.push(linefields[index].id);
                         slide_annotations.push(line_object.annotation);
                     }
                 }
