@@ -85,7 +85,10 @@ class CaseList(models.Model):
             cases = Case.objects.filter(Caselist=self).exclude(caseinstance__User=user_id).order_by('Order')
             if cases:
                 cases = cases.filter(Order=cases[0].Order)
-                return choice(list(cases.values_list('pk', flat=True)))
+                if self.Type == self.OBSERVER:
+                    return choice(list(cases.values_list('pk', flat=True)))
+                else:
+                    return cases[0].pk
             else:
                 return -1
         else:

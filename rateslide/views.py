@@ -53,16 +53,19 @@ def get_caselist_data_by_slug(request, slug):
 def get_caselist_data(request, cl):
     clu = UserCaseList.objects.filter(CaseList=cl)
     ud = {}
-    if request.user.is_authenticated:
-        if check_usercaselist(request.user, cl) != UserCaseList.NONE:
-            ud['case_count_completed'] = len(cl.cases_completed(request.user.pk))
-            ud['case_count_todo'] = len(cl.cases_todo(request.user.pk))
-            ud['case_count_total'] = len(cl.cases_total(request.user.pk))
+    user = get_case_user(request, cl, False)
+    if user:
+        if check_usercaselist(user, cl) != UserCaseList.NONE:
+            ud['case_completed'] = cl.cases_completed(user.pk)
+            ud['case_count_completed'] = len(ud['case_completed'])
+            ud['case_count_todo'] = len(cl.cases_todo(user.pk))
+            ud['case_count_total'] = len(cl.cases_total(user.pk))
             ud['canAdmit'] = False
         else:
             ud['canAdmit'] = cl.OpenForRegistration
-        ud['isAdmin'] = is_caselist_admin(request.user, cl)
+        ud['isAdmin'] = is_caselist_admin(user, cl)
     else:
+        ud['case_completed'] = []
         ud['case_count_completed'] = 0
         ud['case_count_todo'] = 0
         ud['case_count_total'] = 0
@@ -247,12 +250,12 @@ def showcase(request, case_id):
     return render(request, 'rateslide/showcase.html', {'Case': c, 'Slides': s, 'Editor': editor})
 
 
-@login_required()
 def next_case(request, slug):
     # Get a unprocessed case from the user
     cl = CaseList.objects.get(Slug=slug)
-    if check_usercaselist(request.user, cl):
-        todo = cl.get_next_case(request.user.pk)
+    user = get_case_user(request, cl, True)
+    if check_usercaselist(user, cl):
+        todo = cl.get_next_case(user.pk)
         if todo >= 0:
             return HttpResponseRedirect(reverse('rateslide:case', kwargs={'case_id': todo}))
         else:
@@ -286,23 +289,27 @@ def submitcase(request, case_id):
                                 ans.save()
                             elif id_elts[2] == Question.LINE:
                                 # Answer contains a JSON packed annotation
-                                annotation_data = loads(request.POST[q_id])
-                                ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'],
-                                                                      annotation_data['length_unit'])
-                                ans.save()
-                                annotation = AnswerAnnotation(answer=ans,
-                                                              Slide=Slide.objects.get(pk=annotation_data['slideid']),
-                                                              Length=annotation_data['length'],
-                                                              LengthUnit=annotation_data['length_unit'],
-                                                              AnnotationJSON=dumps(annotation_data['annotation']))
-                                annotation.save()
+                                if request.POST[q_id] != '':
+                                    annotation_data = loads(request.POST[q_id])
+                                    ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'],
+                                                                          annotation_data['length_unit'])
+                                    ans.save()
+                                    annotation = AnswerAnnotation(answer=ans,
+                                                                  Slide=Slide.objects.get(pk=annotation_data['slideid']),
+                                                                  Length=annotation_data['length'],
+                                                                  LengthUnit=annotation_data['length_unit'],
+                                                                  AnnotationJSON=dumps(annotation_data['annotation']))
+                                    annotation.save()
+                                else:
+                                    ans.AnswerText = ''
+                                    ans.save()
                             else:
                                 ans.AnswerText = request.POST[q_id]
                                 ans.save()
                 if request.POST['submit'] == 'submit':
                     return HttpResponseRedirect(reverse('rateslide:caselist', kwargs={'slug': cs.Caselist.Slug}))
                 else:
-                    return next_case(request, cs.Caselist.id)
+                    return next_case(request, cs.Caselist.Slug)
             else:
                 return render(request, 'rateslide/case.html',
                               {'Case': cs, 'Slides': cs.Slides.all(), 'Questions': form})
