@@ -50,6 +50,9 @@ class CaseList(models.Model):
 
     def case_count(self):
         return len(self.cases())
+
+    def user_count(self):
+        return UserCaseList.objects.filter(CaseList=self).count()
     
     def cases_total(self, user_id):
         return self.cases().difference(self.cases_skipped(user_id))

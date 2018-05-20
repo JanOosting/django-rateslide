@@ -5,6 +5,8 @@ from json import dumps, loads
 import logging
 import string
 import random
+from collections import Counter
+from statistics import mean, stdev
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse, JsonResponse
@@ -19,7 +21,7 @@ from invitation.forms import InvitationKeyForm
 from histoslide.models import Slide
 
 from .models import Case, Question, CaseInstance, Answer, AnswerAnnotation, CaseList, UserCaseList, CaseBookmark, \
-                   QuestionBookmark
+                   QuestionBookmark, QuestionItem
 from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, CaseInstancesSelectFormSet, \
                    CasesSelectFormSet, QuestionForm
 from .utils import send_usercaselist_mail
@@ -106,7 +108,16 @@ def caselistadmin(request, slug):
     except CaseList.DoesNotExist:
         raise Http404
     return render(request, 'rateslide/caselistadmin.html', cldata)
-  
+
+@login_required()
+def caselistreport(request, slug):
+    try:
+        cldata = get_caselist_data_by_slug(request, slug)
+        if not is_caselist_admin(request.user, cldata['CaseList']):
+            raise Http404
+    except CaseList.DoesNotExist:
+        raise Http404
+    return render(request, 'rateslide/caselistreport.html', cldata)
 
 @csrf_protect
 @login_required()
@@ -263,6 +274,68 @@ def next_case(request, slug):
     else:
         raise Http404
            
+@login_required()
+def casereport(request, case_id):
+    try:
+        cs = Case.objects.get(pk=case_id)
+        if not is_caselist_admin(request.user, cs.Caselist):
+            raise Http404
+        slides = cs.Slides.all().order_by('caseslide__order')
+        questions = Question.objects.filter(Case=cs).values()
+        for question in questions:
+            if question['Type'] == Question.NUMERIC:
+                answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
+                question['total_answers'] = answers.count()
+                if answers.count() > 0:
+                    question['headings'] = ['min', 'max', 'avg', 'sd']
+                    if answers.count() > 1:
+                        std_dev = stdev(answers)
+                    else:
+                        std_dev = '-'
+                    question['data'] = [(min(answers), max(answers), mean(answers), std_dev )]
+
+            elif question['Type'] == Question.MULTIPLECHOICE:
+                answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
+                question['total_answers'] = answers.count()
+                if answers.count() > 0:
+                    question['headings'] = ['n', '%', 'choice']
+                    questionitems = QuestionItem.objects.filter(Question=question['id']).order_by('Order').values_list('Order', 'Text')
+                    counter =  Counter(answers)
+                    question['data'] = [(counter[k], "{0:.0f}".format(counter[k]*100/answers.count()) , n) for (k, n) in questionitems]
+            elif question['Type'] == Question.DATE:
+                answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
+                question['total_answers'] = answers.count()
+            elif question['Type'] == Question.LINE:
+                answers = Answer.objects.select_related('answerannotation').filter(Question=question['id'])
+                lengths  = []
+                annots = []
+                lengthunit = 'px'
+                if answers.count() > 0:
+                    for answ in answers:
+                        lengths.append(answ.answerannotation.Length)
+                        annots.append(answ.answerannotation.AnnotationJSON)
+                        lengthunit = answ.answerannotation.LengthUnit
+                    print (lengths, annots, lengthunit)
+                    question['total_answers'] = len(lengths)
+                    if len(lengths) > 0:
+                        question['headings'] = ['min', 'max', 'avg', 'sd']
+                        if len(lengths) > 1:
+                            std_dev ='{0:.1f} {1:s}'.format(stdev(lengths), lengthunit)
+                        else:
+                            std_dev = '-'
+                        question['data'] = [('{0:.1f} {1:s}'.format(min(lengths), lengthunit), '{0:.1f} {1:s}'.format(max(lengths), lengthunit), '{0:.1f} {1:s}'.format(mean(lengths), lengthunit), std_dev )]
+            else: # OpenText
+                answers = Answer.objects.filter(Question=question['id']).values_list('AnswerText', flat=True)
+                question['total_answers'] = answers.count()
+                if answers.count() > 0:
+                    question['headings'] = ['n', '%', 'text']
+                    counter = Counter(answers)
+                    question['data'] = [(n, "{0:.0f}".format(n*100/answers.count()), t, ) for (t, n) in counter.most_common(10)]
+
+    except Case.DoesNotExist:
+        raise Http404
+    return render(request, 'rateslide/casereport.html', {'Case': cs, 'Slides': slides, 'Questions': questions})
+
 
 @csrf_protect
 def submitcase(request, case_id): 

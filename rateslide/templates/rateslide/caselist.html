@@ -11,6 +11,7 @@
             <p><br><b><a href="{% url 'rateslide:apply-for-invitation' CaseList.Slug %}">Register for this survey</a></b></p>
         {% endif %}
        	{% if UserDict.isAdmin %}
+            <p><br><b><a href="{% url 'rateslide:caselistreport' CaseList.Slug %}">Report</a></b></p>
             <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.Slug %}">Administration</a></b></p>
         {% endif %}
    	{% endif %}

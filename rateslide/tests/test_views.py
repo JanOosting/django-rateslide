@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 from histoslide.models import Slide
 from rateslide.models import CaseBookmark, Case, CaseInstance, QuestionBookmark, Question, CaseList, Answer
-
+from .utils import PopulateAnswers
 
 class CaseTests(TestCase):
     fixtures = ['rateslide_auth.json', 'rateslide_simplecase.json']
@@ -95,6 +95,33 @@ class CaseTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/caselistadmin.html')
 
+    def test_caselistreport_loads(self):
+        url = reverse('rateslide:caselistreport', kwargs={'slug': 'simple-case'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302, 'redirect to login')
+        self.client.login(username='user', password='user')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404,
+                         'Caselistreport is exclusive for admins, status: %s in stead of 404' % response.status_code)
+        self.client.login(username='admin', password='admin')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'rateslide/caselistreport.html')
+
+    def test_casereport_loads(self):
+        url = reverse('rateslide:casereport', kwargs={'case_id': 1})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302, 'redirect to login')
+        self.client.login(username='user', password='user')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404,
+                         'CaseReport is exclusive for admins, status: %s in stead of 404' % response.status_code)
+        self.client.login(username='admin', password='admin')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'rateslide/casereport.html')
+        self.assertContains(response, 'questionreport', count=2)
+
     def test_usercaselist_loads(self):
         url = reverse('rateslide:usercaselist', kwargs={'usercaselist_id': 1})
         response = self.client.get(url)
@@ -107,6 +134,14 @@ class CaseTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rateslide/usercaselist.html')
+
+    def test_populate_case_answers(self):
+        case = PopulateAnswers(1)
+        url = reverse('rateslide:casereport', kwargs={'case_id': case.id})
+        self.client.login(username='admin', password='admin')
+        response = self.client.get(url)
+        self.assertContains(response, 'questionreport', count=4)
+
 
 
 class BookmarkTests(TestCase):

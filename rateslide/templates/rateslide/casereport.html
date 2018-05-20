@@ -1,0 +1,89 @@
+{% extends "rateslide/base.html" %}
+        {% load static %}
+        {% block head_css_page %}
+            <link rel="stylesheet" type="text/css" href="{% static 'rateslide/css/case.css' %}" />
+        {% endblock head_css_page %}
+            
+            {% block body_col1_content %}
+                <div id = "thumbnails" class = "thumbnails">
+                	<ul class="form-button-radio">
+                	{% for Slide in Slides %}
+               	       <li>
+                	   {%if forloop.first %}
+                  	       <input id="slide{{ Slide.pk }}" name="slides" class="slide_link" type="radio" checked="checked">	
+                 	   {% else %}
+                  	       <input id="slide{{ Slide.pk }}" name="slides" class="slide_link" type="radio">	
+               	       {% endif %}
+               	       <label for="slide{{ Slide.pk }}" name="slides">{{ Slide.Name }}</label>
+               	       </li>
+                	{% endfor %}
+                	</ul>
+                </div>
+                <div id="casebookmarks" class="bookmarks">
+                	<br>{% for Bookmark in Case.casebookmark_set.all %}
+                	    <button type="button" class="goto_casebookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
+                	{% endfor %}
+                </div>
+                <div id = "questions">
+                    {% block body_questions %}
+                        {% load markdown_deux_tags %}
+                        <h1>Case report</h1>
+                        <h2>{{ Case.Name }}</h2>
+                        <hr>
+                        {{ Case.Introduction|markdown }}
+                        <hr>
+                        {% for Question in Questions %}
+                            <div class="questionreport">
+                            <br>
+                            {{ Question.Text|markdown }}
+                            {% for Bookmark in Question.value %}
+                                <button type="button" class="goto_questionbookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
+                            {% endfor %}
+                            <p>Total answers: {{ Question.total_answers }}</p>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        {% for heading in Question.headings %}
+                                            <th>{{ heading }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in Question.data %}
+                                        <tr>
+                                            {% for field in d %}
+                                            <td>{{ field }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            </div>
+                        {% endfor %}
+                        <p><a href="{% url 'rateslide:caselistreport' Case.Caselist.Slug %}">To case list report</a></p>
+                    {% endblock body_questions %}
+                </div>
+            {% endblock body_col1_content %}
+
+{% block body_slide %}
+<div id = "slidepane"></div>
+{% endblock body_slide %}
+
+{% block footer_javascript_page %}
+
+<script type="text/javascript" src="{% static '/histoslide/js/openseadragon.min.js' %}"></script>
+<script type="text/javascript" src="{% static '/histoslide/js/openseadragon-scalebar.js' %}"></script>
+<script type="text/javascript" src="{%  static '/histoslide/js/openseadragon-annotations.js' %}"></script>
+<script type="text/javascript" src="{%  static '/histoslide/js/histoslide.js' %}"></script>
+<script type="text/javascript" src="{%  static '/rateslide/js/rateslide.js' %}"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    bm_goto = false;
+    open_slide("/histoslide/{{ Slides.0.pk }}.dzi");
+});
+
+</script>
+{% endblock footer_javascript_page %}
+

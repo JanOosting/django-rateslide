@@ -1,0 +1,20 @@
+{% extends "rateslide/base.html" %}
+{% block body_col1_content %}
+    {% load markdown_deux_tags %}
+    <h2>{{ CaseList.Name }}</h2>
+    <p> Total users: {{ CaseList.user_count }}</p>
+   	<hr>
+    {{ CaseList.Abstract|markdown }}
+    <hr>
+    {{ CaseList.Description|markdown }}
+{% endblock body_col1_content %}
+{% block body_col2_content %}
+        <h2>Cases</h2>
+        {% for case in CaseList.case_set.all %}
+            <p><a href="{% url 'rateslide:casereport' case.id %}">{{ case.Name }}
+            </p>
+        {% endfor %}
+{% endblock body_col2_content %}
+{% block body_col3_content %}
+{% endblock body_col3_content %}
+

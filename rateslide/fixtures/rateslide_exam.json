@@ -5,8 +5,9 @@
  {"model": "rateslide.case", "pk": 2, "fields": {"Name": "Exam case 2", "Caselist": 1, "Order": 2, "Introduction": "Introduction Case 2", "Report": ""}},
  {"model": "rateslide.question", "pk": 1, "fields": {"Case": 1, "Type": "O", "Order": 1, "Text": "How many legs has a duck", "Required": true, "CorrectAnswer": ""}},
  {"model": "rateslide.question", "pk": 2, "fields": {"Case": 2, "Type": "O", "Order": 1, "Text": "Where in the world is Carmen Sandiego?", "Required": true, "CorrectAnswer": ""}},
- {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
- {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 3, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
+ {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 1, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
+ {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
+ {"model": "rateslide.usercaselist", "pk": 3, "fields": {"User": 3, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
  {"model": "histoslide.slide", "pk": 1, "fields": {"Name": "Slide 1", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "test/test.tiff"}},
  {"model": "rateslide.caseslide", "pk": 1, "fields": {"Case": 1, "Slide": 1, "order": 1}}
  ]
