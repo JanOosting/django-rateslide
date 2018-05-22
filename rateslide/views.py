@@ -309,15 +309,19 @@ def casereport(request, case_id):
                 answers = Answer.objects.select_related('answerannotation').filter(Question=question['id'])
                 lengths  = []
                 annots = []
-                lengthunit = 'px'
+                lengthunit = set()
                 if answers.count() > 0:
                     for answ in answers:
-                        lengths.append(answ.answerannotation.Length)
-                        annots.append(answ.answerannotation.AnnotationJSON)
-                        lengthunit = answ.answerannotation.LengthUnit
-                    print (lengths, annots, lengthunit)
+                        if answ.answerannotation:
+                            lengths.append(answ.answerannotation.Length)
+                            annots.append(answ.answerannotation.AnnotationJSON)
+                            lengthunit.add(answ.answerannotation.LengthUnit)
                     question['total_answers'] = len(lengths)
                     if len(lengths) > 0:
+                        if len(lengthunit) > 1:
+                            lengthunit = '-'
+                        else:
+                            lengthunit = lengthunit.pop()
                         question['headings'] = ['min', 'max', 'avg', 'sd']
                         if len(lengths) > 1:
                             std_dev ='{0:.1f} {1:s}'.format(stdev(lengths), lengthunit)
@@ -351,9 +355,10 @@ def submitcase(request, case_id):
                 ci = CaseInstance.objects.create(Case=cs, User=user, Status='E')
                 for q_id in request.POST:
                     # Check if id has proper format for question
-                    # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric
+                    # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric id
                     id_elts = str.split(q_id, '_')
                     if len(id_elts) == 4:
+                        # Skip remarks
                         if id_elts[0] == 'question' and id_elts[2] != "R":
                             question = Question.objects.get(pk=id_elts[3])
                             ans = Answer(CaseInstance=ci, Question=question)
