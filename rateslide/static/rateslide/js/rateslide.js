@@ -180,6 +180,27 @@ function initialize_case() {
     }
 };
 
+function initialize_report() {
+    if (!annotations) {
+        annotations = new OpenSeadragon.Annotations({viewer});
+        annotations.EnableControls(false);
+        viewer.addHandler('open', () => {
+            // Check if there are annotations for this image
+            const firstannotation = document.getElementsByClassName('show_annotations');
+            if (firstannotation.length > 0) {
+
+                case_annotations = JSON.parse(firstannotation[0].value)
+                var slide_annotations = []
+                for (let index = 0; index < case_annotations.length; index += 1) {
+                    if (case_annotations[index].slideid == get_slideid(viewer_image)) {
+                        slide_annotations.push(case_annotations[index].annotation);
+                    }
+                }
+                annotations.setAnnotations(slide_annotations);
+            }
+        });
+    }
+};
 
 $('.rs-line-button').click(function() {
     var line_color =  $(this).val();

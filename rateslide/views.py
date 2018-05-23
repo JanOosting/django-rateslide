@@ -314,7 +314,9 @@ def casereport(request, case_id):
                     for answ in answers:
                         if hasattr(answ,'answerannotation'):
                             lengths.append(answ.answerannotation.Length)
-                            annots.append(answ.answerannotation.AnnotationJSON)
+                            annot = loads(answ.answerannotation.AnnotationJSON)
+                            annot.append(str(answ.id))
+                            annots.append({'slideid':answ.answerannotation.Slide_id, 'annotation': annot})
                             lengthunit.add(answ.answerannotation.LengthUnit)
                     question['total_answers'] = len(lengths)
                     if len(lengths) > 0:
@@ -328,6 +330,8 @@ def casereport(request, case_id):
                         else:
                             std_dev = '-'
                         question['data'] = [('{0:.1f} {1:s}'.format(min(lengths), lengthunit), '{0:.1f} {1:s}'.format(max(lengths), lengthunit), '{0:.1f} {1:s}'.format(mean(lengths), lengthunit), std_dev )]
+                        question['annotations'] = dumps(annots)
+
             else: # OpenText
                 answers = Answer.objects.filter(Question=question['id']).values_list('AnswerText', flat=True)
                 question['total_answers'] = answers.count()

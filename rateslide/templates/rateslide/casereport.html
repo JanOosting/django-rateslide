@@ -40,6 +40,9 @@
                                 <button type="button" class="goto_questionbookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
                             {% endfor %}
                             <p>Total answers: {{ Question.total_answers }}</p>
+                            {%  if Question.annotations %}
+                            <button type="button" class="show_annotations" value="{{ Question.annotations }}" hidden="hidden"></button>
+                            {% endif %}
                             <table>
                                 <thead>
                                     <tr>
@@ -82,6 +85,7 @@
 $(document).ready(function() {
     bm_goto = false;
     open_slide("/histoslide/{{ Slides.0.pk }}.dzi");
+    initialize_report()
 });
 
 </script>
