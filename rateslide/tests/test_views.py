@@ -142,6 +142,17 @@ class CaseTests(TestCase):
         response = self.client.get(url)
         self.assertContains(response, 'questionreport', count=4)
 
+    def test_line_answer_without_annotation(self):
+        cl = CaseList.objects.get(pk=1)
+        case = Case.objects.create(Name='Exam case generated 2', Caselist=cl, Introduction='Test')
+        q4 = Question.objects.create(Case=case, Type=Question.LINE, Text='measure line', Order=1)
+        user = User.objects.create(username='UserTest')
+        ci = CaseInstance.objects.create(Case=case, User=user, Status=CaseInstance.ENDED)
+        Answer.objects.create(CaseInstance=ci, Question=q4, AnswerText='')
+        url = reverse('rateslide:casereport', kwargs={'case_id': case.id})
+        self.client.login(username='admin', password='admin')
+        response = self.client.get(url)
+        self.assertContains(response, 'questionreport', count=1)
 
 
 class BookmarkTests(TestCase):

@@ -312,7 +312,7 @@ def casereport(request, case_id):
                 lengthunit = set()
                 if answers.count() > 0:
                     for answ in answers:
-                        if answ.answerannotation:
+                        if hasattr(answ,'answerannotation'):
                             lengths.append(answ.answerannotation.Length)
                             annots.append(answ.answerannotation.AnnotationJSON)
                             lengthunit.add(answ.answerannotation.LengthUnit)
