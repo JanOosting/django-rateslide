@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 
 from histoslide.models import Slide
 from rateslide.models import CaseBookmark, Case, CaseInstance, QuestionBookmark, Question, CaseList, Answer
-from .utils import PopulateAnswers
+from .utils import populate_answers
+
 
 class CaseTests(TestCase):
     fixtures = ['rateslide_auth.json', 'rateslide_simplecase.json']
@@ -36,16 +37,16 @@ class CaseTests(TestCase):
         cl.VisibleForNonUsers = False
         cl.save()
         url = reverse('rateslide:submitcase', kwargs={'case_id': 1})
-        response = self.client.post(url, {'question_R_M_1': '1', 'question_R_O_3': 'Test'})
+        response = self.client.post(url, {'question_R_M_1': '1', 'question_F_R_2': 'Test', 'submit': 'submit', })
         self.assertEqual(response.status_code, 404, 'Error')
         self.client.login(username='user', password='user')
-        response = self.client.post(url, {'question_R_M_1': '1', 'question_R_O_3': 'Test', 'submit': 'submit', })
+        response = self.client.post(url, {'question_R_M_1': '1', 'question_F_R_2': 'Test', 'submit': 'submit', })
         self.assertEqual(response.status_code, 302)
         ci = CaseInstance.objects.filter(Case__id=1, User=User.objects.get(username='user'))
         self.assertEqual(ci.count(), 1, 'case was only answered once')
-        ans = Answer.objects.filter(CaseInstance = ci[0].pk)
-        self.assertEqual(ans.count(), 2, 'should be 2 questions in case')
-        self.assertEqual(ans[0].AnswerText, 'Test')
+        ans = Answer.objects.filter(CaseInstance=ci[0].pk)
+        self.assertEqual(ans.count(), 1, 'should be 1 answer in case, remark is skipped')
+        self.assertEqual(ans[0].AnswerNumeric, 1)
 
     def test_case_visiblefornonusers_allows_anonymous(self):
         usercount = User.objects.count()
@@ -136,7 +137,7 @@ class CaseTests(TestCase):
         self.assertTemplateUsed(response, 'rateslide/usercaselist.html')
 
     def test_populate_case_answers(self):
-        case = PopulateAnswers(1)
+        case = populate_answers(1)
         url = reverse('rateslide:casereport', kwargs={'case_id': case.id})
         self.client.login(username='admin', password='admin')
         response = self.client.get(url)

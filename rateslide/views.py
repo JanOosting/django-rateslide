@@ -109,6 +109,7 @@ def caselistadmin(request, slug):
         raise Http404
     return render(request, 'rateslide/caselistadmin.html', cldata)
 
+
 @login_required()
 def caselistreport(request, slug):
     try:
@@ -118,6 +119,7 @@ def caselistreport(request, slug):
     except CaseList.DoesNotExist:
         raise Http404
     return render(request, 'rateslide/caselistreport.html', cldata)
+
 
 @csrf_protect
 @login_required()
@@ -241,7 +243,7 @@ def case(request, case_id):
             raise Http404
         s = c.Slides.all().order_by('caseslide__order')
         editor = is_caselist_admin(user, c.Caselist)
-        q_f = QuestionForm(Question.objects.filter(Case=c.id))
+        q_f = QuestionForm(c, user)
         # Register that user started on this case
     except Case.DoesNotExist:
         raise Http404
@@ -274,6 +276,7 @@ def next_case(request, slug):
     else:
         raise Http404
            
+
 @login_required()
 def casereport(request, case_id):
     try:
@@ -292,31 +295,33 @@ def casereport(request, case_id):
                         std_dev = stdev(answers)
                     else:
                         std_dev = '-'
-                    question['data'] = [(min(answers), max(answers), mean(answers), std_dev )]
+                    question['data'] = [(min(answers), max(answers), mean(answers), std_dev)]
 
             elif question['Type'] == Question.MULTIPLECHOICE:
                 answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
                 question['total_answers'] = answers.count()
                 if answers.count() > 0:
                     question['headings'] = ['n', '%', 'choice']
-                    questionitems = QuestionItem.objects.filter(Question=question['id']).order_by('Order').values_list('Order', 'Text')
-                    counter =  Counter(answers)
-                    question['data'] = [(counter[k], "{0:.0f}".format(counter[k]*100/answers.count()) , n) for (k, n) in questionitems]
+                    questionitems = QuestionItem.objects.filter(Question=question['id']).order_by('Order').\
+                        values_list('Order', 'Text')
+                    counter = Counter(answers)
+                    question['data'] = [(counter[k], "{0:.0f}".
+                                         format(counter[k]*100/answers.count()), n) for (k, n) in questionitems]
             elif question['Type'] == Question.DATE:
                 answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
                 question['total_answers'] = answers.count()
             elif question['Type'] == Question.LINE:
                 answers = Answer.objects.select_related('answerannotation').filter(Question=question['id'])
-                lengths  = []
+                lengths = []
                 annots = []
                 lengthunit = set()
                 if answers.count() > 0:
                     for answ in answers:
-                        if hasattr(answ,'answerannotation'):
+                        if hasattr(answ, 'answerannotation'):
                             lengths.append(answ.answerannotation.Length)
                             annot = loads(answ.answerannotation.AnnotationJSON)
                             annot.append(str(answ.id))
-                            annots.append({'slideid':answ.answerannotation.Slide_id, 'annotation': annot})
+                            annots.append({'slideid': answ.answerannotation.Slide_id, 'annotation': annot})
                             lengthunit.add(answ.answerannotation.LengthUnit)
                     question['total_answers'] = len(lengths)
                     if len(lengths) > 0:
@@ -326,19 +331,22 @@ def casereport(request, case_id):
                             lengthunit = lengthunit.pop()
                         question['headings'] = ['min', 'max', 'avg', 'sd']
                         if len(lengths) > 1:
-                            std_dev ='{0:.1f} {1:s}'.format(stdev(lengths), lengthunit)
+                            std_dev = '{0:.1f} {1:s}'.format(stdev(lengths), lengthunit)
                         else:
                             std_dev = '-'
-                        question['data'] = [('{0:.1f} {1:s}'.format(min(lengths), lengthunit), '{0:.1f} {1:s}'.format(max(lengths), lengthunit), '{0:.1f} {1:s}'.format(mean(lengths), lengthunit), std_dev )]
+                        question['data'] = [('{0:.1f} {1:s}'.format(min(lengths), lengthunit),
+                                             '{0:.1f} {1:s}'.format(max(lengths), lengthunit),
+                                             '{0:.1f} {1:s}'.format(mean(lengths), lengthunit), std_dev)]
                         question['annotations'] = dumps(annots)
 
-            else: # OpenText
+            else:  # OpenText
                 answers = Answer.objects.filter(Question=question['id']).values_list('AnswerText', flat=True)
                 question['total_answers'] = answers.count()
                 if answers.count() > 0:
                     question['headings'] = ['n', '%', 'text']
                     counter = Counter(answers)
-                    question['data'] = [(n, "{0:.0f}".format(n*100/answers.count()), t, ) for (t, n) in counter.most_common(10)]
+                    question['data'] = [(n, "{0:.0f}".format(n*100/answers.count()), t, )
+                                        for (t, n) in counter.most_common(10)]
 
     except Case.DoesNotExist:
         raise Http404
@@ -354,10 +362,10 @@ def submitcase(request, case_id):
             user = get_case_user(request, cs.Caselist, True)
             if not (check_usercaselist(user, cs.Caselist) and user):
                 raise Http404
-            form = QuestionForm(Question.objects.filter(Case=cs.id), request.POST)
+            form = QuestionForm(cs, user, request.POST)
             if form.is_valid():
                 ci = CaseInstance.objects.create(Case=cs, User=user, Status='E')
-                for q_id in request.POST:
+                for q_id in form.cleaned_data:
                     # Check if id has proper format for question
                     # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric id
                     id_elts = str.split(q_id, '_')
@@ -367,26 +375,26 @@ def submitcase(request, case_id):
                             question = Question.objects.get(pk=id_elts[3])
                             ans = Answer(CaseInstance=ci, Question=question)
                             if id_elts[2] in [Question.MULTIPLECHOICE, Question.NUMERIC]:
-                                ans.AnswerNumeric = request.POST[q_id]
+                                ans.AnswerNumeric = form.cleaned_data[q_id]
                                 ans.save()
                             elif id_elts[2] == Question.LINE:
                                 # Answer contains a JSON packed annotation
-                                if request.POST[q_id] != '':
-                                    annotation_data = loads(request.POST[q_id])
+                                if form.cleaned_data[q_id] != '':
+                                    annotation_data = loads(form.cleaned_data[q_id])
                                     ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'],
                                                                           annotation_data['length_unit'])
                                     ans.save()
-                                    annotation = AnswerAnnotation(answer=ans,
-                                                                  Slide=Slide.objects.get(pk=annotation_data['slideid']),
-                                                                  Length=annotation_data['length'],
-                                                                  LengthUnit=annotation_data['length_unit'],
-                                                                  AnnotationJSON=dumps(annotation_data['annotation']))
-                                    annotation.save()
+                                    ann = AnswerAnnotation(answer=ans,
+                                                           Slide=Slide.objects.get(pk=annotation_data['slideid']),
+                                                           Length=annotation_data['length'],
+                                                           LengthUnit=annotation_data['length_unit'],
+                                                           AnnotationJSON=dumps(annotation_data['annotation']))
+                                    ann.save()
                                 else:
                                     ans.AnswerText = ''
                                     ans.save()
                             else:
-                                ans.AnswerText = request.POST[q_id]
+                                ans.AnswerText = form.cleaned_data[q_id]
                                 ans.save()
                 if request.POST['submit'] == 'submit':
                     return HttpResponseRedirect(reverse('rateslide:caselist', kwargs={'slug': cs.Caselist.Slug}))

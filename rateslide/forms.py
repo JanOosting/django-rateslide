@@ -1,11 +1,13 @@
+from json import dumps, loads
+
 from django.forms import ModelForm, Form, Field, CharField, IntegerField, TypedChoiceField, DateField, BooleanField
 from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
 from django.forms.widgets import HiddenInput, RadioSelect
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinLengthValidator
 
-from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance, QuestionBookmark
+from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance, \
+    QuestionBookmark, Answer
 
 
 class CaseListForm(ModelForm):
@@ -105,13 +107,29 @@ class LineField(Field):
 
 
 class QuestionForm(Form):
-    def __init__(self, questions, *args, **kwargs):
-        super(QuestionForm, self).__init__(*args, **kwargs)
+    def __init__(self, case, user, data=None, *args, **kwargs):
+        questions = Question.objects.filter(Case=case)
+        if not data:
+            caseinstance = None if user is None else CaseInstance.objects.filter(Case=case, User=user).first()
+            if caseinstance:
+                data = {}
+                answers = Answer.objects.filter(CaseInstance=caseinstance).select_related('Question')
+                for answer in answers:
+                    if answer.Question.Type in (Question.NUMERIC, Question.MULTIPLECHOICE):
+                        data[answer.Question.fieldid()] = answer.AnswerNumeric
+                    elif answer.Question.Type == Question.LINE:
+                        if hasattr(answer, 'answerannotation'):
+                            annotation = loads(answer.answerannotation.AnnotationJSON)
+                            data[answer.Question.fieldid()] = dumps({'length': answer.answerannotation.Length,
+                                                                     'length_unit': answer.answerannotation.LengthUnit,
+                                                                     'slide_id': answer.answerannotation.Slide_id,
+                                                                     'annotation': annotation})
+                    else:
+                        data[answer.Question.fieldid()] = answer.AnswerText
+
+        super(QuestionForm, self).__init__(data, *args, **kwargs)
         for question in questions:
-                
-            if question.Type == Question.OPENTEXT:
-                field = CharField(label=question.Text)
-            elif question.Type == Question.NUMERIC: 
+            if question.Type == Question.NUMERIC:
                 field = IntegerField(label=question.Text)
             elif question.Type == Question.MULTIPLECHOICE: 
                 field = TypedChoiceField(
@@ -127,15 +145,12 @@ class QuestionForm(Form):
                 field.initial = question.bookmarks()
             elif question.Type == Question.LINE:
                 field = LineField(label=question.Text)
+            else:  # Use Question.OPENTEXT as fallthrough/default
+                field = CharField(label=question.Text)
 
-            if question.Required:
-                tag = "R"
-                field.required = True
-            else:
-                tag = "F"
-                field.required = False
+            field.required = question.Required
 
-            self.fields['question_%s_%s_%s' % (tag, question.Type, question.id)] = field   
+            self.fields[question.fieldid()] = field
 
 
 class CaseBookmarkForm(ModelForm):

@@ -204,7 +204,9 @@ class Question(models.Model):
     def bookmarks(self):
         return list(QuestionBookmark.objects.filter(Question=self).order_by('order').values('pk', 'Text'))
 
-         
+    def fieldid(self):
+        return 'question_%s_%s_%s' % ('R' if self.Required else 'F', self.Type, self.id)
+
        
 # Items for multiple choice questions
 class QuestionItem(models.Model):
@@ -231,6 +233,7 @@ class Answer(models.Model):
 
 class AnswerAnnotation(SlideAnnotation):
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
+
 
 class UserCaseList(models.Model):
     ACTIVE = 'A'
@@ -309,6 +312,7 @@ def registrant_m2m_changed(sender, instance, action, reverse, model, pk_set, **k
                 ucl, created = UserCaseList.objects.get_or_create(User=newuser, CaseList=caselistinvitation.Caselist,
                                                                   defaults={'Status': UserCaseList.ACTIVE})
                 send_usercaselist_mail(ucl, 'welcome')
+
 
 m2m_changed.connect(registrant_m2m_changed, sender=InvitationKey.registrant.through)
 
