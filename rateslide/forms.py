@@ -141,8 +141,7 @@ class QuestionForm(Form):
             elif question.Type == Question.REMARK:
                 field = CharField(label=question.Text, widget=HiddenInput)
                 # Add a list of bookmarks {pk, Text} to the value attribute of a hidden input
-                field.widget.attrs.update({'question': question.pk, })
-                field.initial = question.bookmarks()
+                field.widget.attrs.update({'question': question.pk, 'bookmarks': question.bookmarks()})
             elif question.Type == Question.LINE:
                 field = LineField(label=question.Text)
             else:  # Use Question.OPENTEXT as fallthrough/default
