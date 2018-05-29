@@ -305,8 +305,8 @@ def casereport(request, case_id):
                     questionitems = QuestionItem.objects.filter(Question=question['id']).order_by('Order').\
                         values_list('Order', 'Text')
                     counter = Counter(answers)
-                    question['data'] = [(counter[k], "{0:.0f}".
-                                         format(counter[k]*100/answers.count()), n) for (k, n) in questionitems]
+                    question['data'] = [(counter[k], "{0:.0%}".
+                                         format(counter[k]/answers.count()), n) for (k, n) in questionitems]
             elif question['Type'] == Question.DATE:
                 answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
                 question['total_answers'] = answers.count()
@@ -331,12 +331,12 @@ def casereport(request, case_id):
                             lengthunit = lengthunit.pop()
                         question['headings'] = ['min', 'max', 'avg', 'sd']
                         if len(lengths) > 1:
-                            std_dev = '{0:.1f} {1:s}'.format(stdev(lengths), lengthunit)
+                            std_dev = '{0:.2g} {1:s}'.format(stdev(lengths), lengthunit)
                         else:
                             std_dev = '-'
-                        question['data'] = [('{0:.1f} {1:s}'.format(min(lengths), lengthunit),
-                                             '{0:.1f} {1:s}'.format(max(lengths), lengthunit),
-                                             '{0:.1f} {1:s}'.format(mean(lengths), lengthunit), std_dev)]
+                        question['data'] = [('{0:.2g} {1:s}'.format(min(lengths), lengthunit),
+                                             '{0:.2g} {1:s}'.format(max(lengths), lengthunit),
+                                             '{0:.2g} {1:s}'.format(mean(lengths), lengthunit), std_dev)]
                         question['annotations'] = dumps(annots)
 
             else:  # OpenText
@@ -345,7 +345,7 @@ def casereport(request, case_id):
                 if answers.count() > 0:
                     question['headings'] = ['n', '%', 'text']
                     counter = Counter(answers)
-                    question['data'] = [(n, "{0:.0f}".format(n*100/answers.count()), t, )
+                    question['data'] = [(n, "{0:.0%}".format(n/answers.count()), t, )
                                         for (t, n) in counter.most_common(10)]
 
     except Case.DoesNotExist:
@@ -364,7 +364,7 @@ def submitcase(request, case_id):
                 raise Http404
             form = QuestionForm(cs, user, request.POST)
             if form.is_valid():
-                ci = CaseInstance.objects.create(Case=cs, User=user, Status='E')
+                ci , _ = CaseInstance.objects.get_or_create(Case=cs, User=user, defaults={'Status': 'E'})
                 for q_id in form.cleaned_data:
                     # Check if id has proper format for question
                     # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric id
@@ -373,7 +373,7 @@ def submitcase(request, case_id):
                         # Skip remarks
                         if id_elts[0] == 'question' and id_elts[2] != "R":
                             question = Question.objects.get(pk=id_elts[3])
-                            ans = Answer(CaseInstance=ci, Question=question)
+                            ans, _ = Answer.objects.get_or_create(CaseInstance=ci, Question=question)
                             if id_elts[2] in [Question.MULTIPLECHOICE, Question.NUMERIC]:
                                 ans.AnswerNumeric = form.cleaned_data[q_id]
                                 ans.save()
@@ -381,16 +381,17 @@ def submitcase(request, case_id):
                                 # Answer contains a JSON packed annotation
                                 if form.cleaned_data[q_id] != '':
                                     annotation_data = loads(form.cleaned_data[q_id])
-                                    ans.AnswerText = "{0:.3f} {1}".format(annotation_data['length'],
+                                    ans.AnswerText = "{0:.3g} {1}".format(annotation_data['length'],
                                                                           annotation_data['length_unit'])
                                     ans.save()
-                                    ann = AnswerAnnotation(answer=ans,
-                                                           Slide=Slide.objects.get(pk=annotation_data['slideid']),
-                                                           Length=annotation_data['length'],
-                                                           LengthUnit=annotation_data['length_unit'],
-                                                           AnnotationJSON=dumps(annotation_data['annotation']))
-                                    ann.save()
+                                    AnswerAnnotation.objects.update_or_create(answer=ans, defaults=
+                                                           {'Slide': Slide.objects.get(pk=annotation_data['slideid']),
+                                                            'Length': annotation_data['length'],
+                                                            'LengthUnit': annotation_data['length_unit'],
+                                                            'AnnotationJSON': dumps(annotation_data['annotation'])})
                                 else:
+                                    if hasattr(ans, 'answerannotation'):
+                                        ans.answerannotation.delete(keep_parents=True)
                                     ans.AnswerText = ''
                                     ans.save()
                             else:

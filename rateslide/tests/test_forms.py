@@ -62,7 +62,7 @@ class QuestionFormTests(TestCase):
         question_remark = Question.objects.get(Case=case, Type=Question.REMARK)
         data[question_remark.fieldid()] = 'test'
         question_line = Question.objects.get(Case=case, Type=Question.LINE)
-        data[question_line.fieldid()] = '{"length": 2, "length_unit": "mm", "slide_id": 1, "annotation": ["line", {"x1": "1.0", "y1": "1.0", "x2": "25.0", "y2": "25.0", "stroke": "green", "stroke-width": "3", "vector-effect": "non-scaling-stroke"}]'
+        data[question_line.fieldid()] = '{"length": 2, "length_unit": "mm", "slideid": 1, "annotation": ["line", {"x1": "1.0", "y1": "1.0", "x2": "25.0", "y2": "25.0", "stroke": "green", "stroke-width": "3", "vector-effect": "non-scaling-stroke"}]'
         form = QuestionForm(case, user, data)
         self.assertTrue(form.is_valid(), 'Form should validate ok')
         self.assertEqual(form.cleaned_data[question_opentext.fieldid()], 'plain text')
@@ -70,7 +70,7 @@ class QuestionFormTests(TestCase):
         self.assertEqual(form.cleaned_data[question_multiplechoice.fieldid()], 1)
         self.assertEqual(form.cleaned_data[question_date.fieldid()], date(2018, 1, 10))
         self.assertEqual(form.cleaned_data[question_remark.fieldid()], 'test')
-        self.assertEqual(form.cleaned_data[question_line.fieldid()], '{"length": 2, "length_unit": "mm", "slide_id": 1, "annotation": ["line", {"x1": "1.0", "y1": "1.0", "x2": "25.0", "y2": "25.0", "stroke": "green", "stroke-width": "3", "vector-effect": "non-scaling-stroke"}]')
+        self.assertEqual(form.cleaned_data[question_line.fieldid()], '{"length": 2, "length_unit": "mm", "slideid": 1, "annotation": ["line", {"x1": "1.0", "y1": "1.0", "x2": "25.0", "y2": "25.0", "stroke": "green", "stroke-width": "3", "vector-effect": "non-scaling-stroke"}]')
 
     def test_questionfield_from_previously_saved_answer(self):
         case = create_case_with_all_question_types()
@@ -95,4 +95,4 @@ class QuestionFormTests(TestCase):
         self.assertEqual(form.cleaned_data[question_multiplechoice.fieldid()], 2)
         self.assertEqual(form.cleaned_data[question_date.fieldid()], date(2018, 2, 13))
         self.assertEqual(form.cleaned_data[question_remark.fieldid()], '')
-        self.assertEqual(form.cleaned_data[question_line.fieldid()], '{"length": 1.5, "length_unit": "mm", "slide_id": 1, "annotation": ["line", {"x1": "1.0", "y1": "1.0", "x2": "30.0", "y2": "30.0", "stroke": "green", "stroke-width": "3", "vector-effect": "non-scaling-stroke"}]}')
+        self.assertEqual(form.cleaned_data[question_line.fieldid()], '{"length": 1.5, "length_unit": "mm", "slideid": 1, "annotation": ["line", {"x1": "1.0", "y1": "1.0", "x2": "30.0", "y2": "30.0", "stroke": "green", "stroke-width": "3", "vector-effect": "non-scaling-stroke"}]}')

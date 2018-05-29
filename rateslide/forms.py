@@ -122,8 +122,11 @@ class QuestionForm(Form):
                             annotation = loads(answer.answerannotation.AnnotationJSON)
                             data[answer.Question.fieldid()] = dumps({'length': answer.answerannotation.Length,
                                                                      'length_unit': answer.answerannotation.LengthUnit,
-                                                                     'slide_id': answer.answerannotation.Slide_id,
+                                                                     'slideid': answer.answerannotation.Slide_id,
                                                                      'annotation': annotation})
+                            data[answer.Question.fieldid() + '-length'] = \
+                                "{0:.3g} {1}".format(answer.answerannotation.Length,
+                                                     answer.answerannotation.LengthUnit)
                     else:
                         data[answer.Question.fieldid()] = answer.AnswerText
 
@@ -144,6 +147,10 @@ class QuestionForm(Form):
                 field.widget.attrs.update({'question': question.pk, 'bookmarks': question.bookmarks()})
             elif question.Type == Question.LINE:
                 field = LineField(label=question.Text)
+                if data and question.fieldid() in data:
+                    if question.fieldid() + '-length' in data:
+                        field.widget.attrs.update({'line_length': data[question.fieldid() + '-length']})
+                    field.initial = data[question.fieldid()]
             else:  # Use Question.OPENTEXT as fallthrough/default
                 field = CharField(label=question.Text)
 
