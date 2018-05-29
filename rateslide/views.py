@@ -249,7 +249,7 @@ def case(request, case_id):
         raise Http404
     response = render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f, 'Editor': editor})
     if 'slideobs_user' in request.COOKIES and user.email == '':
-        response.set_cookie('slideobs_user', user.username)
+        response.set_cookie('slideobs_user', user.username, max_age=604800)
     return response
 
 
@@ -266,7 +266,7 @@ def showcase(request, case_id):
 def next_case(request, slug):
     # Get a unprocessed case from the user
     cl = CaseList.objects.get(Slug=slug)
-    user = get_case_user(request, cl, True)
+    user = get_case_user(request, cl, False)
     if check_usercaselist(user, cl):
         todo = cl.get_next_case(user.pk)
         if todo >= 0:

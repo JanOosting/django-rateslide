@@ -59,7 +59,7 @@
                             <div style="border:1px solid #00D;">
                                 <input type="text"  class="bookmarktext" name="questionbookmark_{{ Question.field.widget.attrs.question }}" id="txt_questionbookmark_{{ Question.field.widget.attrs.question }}" />
                                 <button type="button" class="makequestionbookmark" id="btn_questionbookmark_{{ Question.field.widget.attrs.question }}" value="{{ Question.field.widget.attrs.question }}" disabled="disabled">Make bookmark</button>
-                                {% if Question.value|length > 0 %}
+                                {% if Question.field.widget.attrs.bookmarks|length > 0 %}
                                     <select id="lb_questionbookmark_{{ Question.field.widget.attrs.question }}" class="select">
                                     {% for option in Question.field.widget.attrs.bookmarks %}
                                         <option value="{{ option.pk }}">{{ option.Text}}</option>
