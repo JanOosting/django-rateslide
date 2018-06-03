@@ -198,3 +198,32 @@ button.rs-line-button {
     border-color: black;
     float: left;
 }
+
+div.questionreport table, td, th {
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+div.questionreport table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+div.questionreport th {
+    background-color: #999;
+    color: white;
+}
+div.questionreport th, td {
+    padding-left: 15px;
+    padding-right: 10px;
+    text-align: left;
+}
+div.questionreport tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+div.questionreport img {
+    padding: 10px;
+    display: block;
+    margin: 0 auto;
+}
