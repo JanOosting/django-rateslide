@@ -9,6 +9,9 @@ from os import path
 from collections import Counter
 from statistics import mean, stdev
 
+import matplotlib
+# Force matplotlib to not use any UI backend.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, to_hex
 import numpy as np
