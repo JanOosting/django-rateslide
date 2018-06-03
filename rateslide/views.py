@@ -369,7 +369,7 @@ def casereport(request, case_id):
                         question['annotations'] = dumps(annots)
 
             else:  # OpenText
-                answers = Answer.objects.filter(Question=question['id']).values_list('AnswerText', flat=True)
+                answers = Answer.objects.filter(Question=question['id']).exclude(AnswerText='').values_list('AnswerText', flat=True)
                 question['total_answers'] = answers.count()
                 if answers.count() > 0:
                     question['headings'] = ['n', '%', 'text']
