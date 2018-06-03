@@ -288,7 +288,7 @@ def generate_report_histogram(data, question_id):
     fig, axs = plt.subplots(figsize=(3, 1))
     n, bins, patches = axs.hist(x)
     for i, patch in enumerate(patches):
-        color = plt.cm.viridis(i/len(patches))
+        color = plt.cm.viridis(i/(len(patches)-1))
         patch.set_facecolor(color)
     fname = 'questionresult/hist_{0:d}.png'.format(question_id)
     fig.savefig(path.join(settings.MEDIA_ROOT, fname), dpi=100, bbox_inches='tight')
