@@ -5,8 +5,13 @@ from json import dumps, loads
 import logging
 import string
 import random
+from os import path
 from collections import Counter
 from statistics import mean, stdev
+
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize, to_hex
+import numpy as np
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse, JsonResponse
@@ -275,7 +280,28 @@ def next_case(request, slug):
             return HttpResponseRedirect(reverse('home'))
     else:
         raise Http404
-           
+
+
+def generate_report_histogram(data, question_id):
+    x = np.asarray(data)
+
+    fig, axs = plt.subplots(figsize=(3, 1))
+    n, bins, patches = axs.hist(x)
+    for i, patch in enumerate(patches):
+        color = plt.cm.viridis(i/len(patches))
+        patch.set_facecolor(color)
+    fname = 'questionresult/hist_{0:d}.png'.format(question_id)
+    fig.savefig(path.join(settings.MEDIA_ROOT, fname), dpi=100, bbox_inches='tight')
+    return settings.MEDIA_URL + fname
+
+
+def color_annotations_by(annotations, data):
+    x = np.asarray(data)
+    norm = Normalize(x.min(), x.max())
+    for i, annot in enumerate(annotations):
+        color = plt.cm.viridis(norm(x[i]))
+        annot['annotation'][1]['stroke'] = to_hex(color)
+
 
 @login_required()
 def casereport(request, case_id):
@@ -290,6 +316,7 @@ def casereport(request, case_id):
                 answers = Answer.objects.filter(Question=question['id']).values_list('AnswerNumeric', flat=True)
                 question['total_answers'] = answers.count()
                 if answers.count() > 0:
+                    question['resultimage'] = generate_report_histogram(answers, question['id'])
                     question['headings'] = ['min', 'max', 'avg', 'sd']
                     if answers.count() > 1:
                         std_dev = stdev(answers)
@@ -325,6 +352,8 @@ def casereport(request, case_id):
                             lengthunit.add(answ.answerannotation.LengthUnit)
                     question['total_answers'] = len(lengths)
                     if len(lengths) > 0:
+                        question['resultimage'] = generate_report_histogram(lengths, question['id'])
+                        color_annotations_by(annots, lengths)
                         if len(lengthunit) > 1:
                             lengthunit = '-'
                         else:
@@ -364,7 +393,7 @@ def submitcase(request, case_id):
                 raise Http404
             form = QuestionForm(cs, user, request.POST)
             if form.is_valid():
-                ci , _ = CaseInstance.objects.get_or_create(Case=cs, User=user, defaults={'Status': 'E'})
+                ci, _ = CaseInstance.objects.get_or_create(Case=cs, User=user, defaults={'Status': 'E'})
                 for q_id in form.cleaned_data:
                     # Check if id has proper format for question
                     # 0:'question', 1:'R|F', 2:"M|N|O|D|R|L", 3:numeric id

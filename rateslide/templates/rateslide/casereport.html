@@ -61,6 +61,9 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                            {% if Question.resultimage %}
+                                <img src="{{ Question.resultimage }}">
+                            {% endif %}
                             </div>
                         {% endfor %}
                         <p><a href="{% url 'rateslide:caselistreport' Case.Caselist.Slug %}">To case list report</a></p>
