@@ -408,7 +408,7 @@ def submitcase(request, case_id):
                             ans, _ = Answer.objects.get_or_create(CaseInstance=ci, Question=question)
                             cleaned_answer = form.cleaned_data[q_id]
                             if id_elts[2] in [Question.MULTIPLECHOICE, Question.NUMERIC]:
-                                if cleaned_answer != '':
+                                if cleaned_answer != '' and cleaned_answer != None:
                                     ans.AnswerNumeric = cleaned_answer
                                     ans.save()
                                 else:

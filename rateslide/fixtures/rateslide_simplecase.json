@@ -18,6 +18,9 @@
  {"model": "rateslide.questionitem", "pk": 7, "fields": {"Question": 4, "Order": 3, "Text": "3"}},
  {"model": "rateslide.questionitem", "pk": 8, "fields": {"Question": 4, "Order": 4, "Text": "4"}},
 
+ {"model": "rateslide.case", "pk": 5, "fields": {"Name": "Case 5", "Caselist": 1, "Order": 4, "Introduction": "Introduction Case 4, optional numeric", "Report": ""}},
+ {"model": "rateslide.question", "pk": 5, "fields": {"Case": 5, "Type": "N", "Order": 1, "Text": "How many legs has a duck", "Required": false, "CorrectAnswer": ""}},
+
  {"model": "rateslide.usercaselist", "pk": 1, "fields": {"User": 2, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
  {"model": "rateslide.usercaselist", "pk": 2, "fields": {"User": 3, "CaseList": 1, "Status": "A", "StartTime": "2016-10-10T0:0:0Z", "EndTime": null}},
 

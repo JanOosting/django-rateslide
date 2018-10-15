@@ -63,6 +63,19 @@ class CaseTests(TestCase):
         ans = Answer.objects.filter(CaseInstance=ci[0].pk)
         self.assertEqual(ans.count(), 0, 'should be 0 answer in case, Optional answer not given')
 
+    def test_case_post_optional_numeric_empty(self):
+        cl = CaseList.objects.get(pk=1)
+        cl.VisibleForNonUsers = False
+        cl.save()
+        url = reverse('rateslide:submitcase', kwargs={'case_id': 5})
+        self.client.login(username='user', password='user')
+        response = self.client.post(url, {'submit': 'submit', })
+        self.assertEqual(response.status_code, 302)
+        ci = CaseInstance.objects.filter(Case__id=5, User=User.objects.get(username='user'))
+        self.assertEqual(ci.count(), 1, 'case was only answered once')
+        ans = Answer.objects.filter(CaseInstance=ci[0].pk)
+        self.assertEqual(ans.count(), 0, 'should be 0 answer in case, Optional answer not given')
+
     def test_case_update(self):
         cl = CaseList.objects.get(pk=1)
         cl.VisibleForNonUsers = False
