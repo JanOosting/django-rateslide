@@ -48,21 +48,34 @@ class CaseTests(TestCase):
         self.assertEqual(ans.count(), 1, 'should be 1 answer in case, remark is skipped')
         self.assertEqual(ans[0].AnswerNumeric, 1)
 
+    def test_case_post_optional_MC_empty(self):
+        cl = CaseList.objects.get(pk=1)
+        cl.VisibleForNonUsers = False
+        cl.save()
+        url = reverse('rateslide:submitcase', kwargs={'case_id': 4})
+        response = self.client.post(url, {'submit': 'submit', })
+        self.assertEqual(response.status_code, 404, 'Error')
+        self.client.login(username='user', password='user')
+        response = self.client.post(url, {'submit': 'submit', })
+        self.assertEqual(response.status_code, 302)
+        ci = CaseInstance.objects.filter(Case__id=4, User=User.objects.get(username='user'))
+        self.assertEqual(ci.count(), 1, 'case was only answered once')
+        ans = Answer.objects.filter(CaseInstance=ci[0].pk)
+        self.assertEqual(ans.count(), 0, 'should be 0 answer in case, Optional answer not given')
+
     def test_case_update(self):
         cl = CaseList.objects.get(pk=1)
         cl.VisibleForNonUsers = False
         cl.save()
         url = reverse('rateslide:submitcase', kwargs={'case_id': 1})
         self.client.login(username='user', password='user')
-        response = self.client.post(url, {'question_R_M_1': '1', 'question_F_R_2': 'Test', 'submit': 'submit', })
-        response = self.client.post(url, {'question_R_M_1': '3', 'question_F_R_2': 'Test', 'submit': 'submit', })
+        self.client.post(url, {'question_R_M_1': '1', 'question_F_R_2': 'Test', 'submit': 'submit', })
+        self.client.post(url, {'question_R_M_1': '3', 'question_F_R_2': 'Test', 'submit': 'submit', })
         ci = CaseInstance.objects.filter(Case__id=1, User=User.objects.get(username='user'))
         self.assertEqual(len(ci), 1, 'There should be only 1 case instance after update')
         ans = Answer.objects.filter(CaseInstance=ci[0])
         self.assertEqual(len(ans), 1, 'should be 1 answer in caseinstance')
         self.assertEqual(ans[0].AnswerNumeric, 3)
-
-
 
     def test_case_visiblefornonusers_allows_anonymous(self):
         usercount = User.objects.count()

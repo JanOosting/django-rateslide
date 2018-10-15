@@ -406,13 +406,17 @@ def submitcase(request, case_id):
                         if id_elts[0] == 'question' and id_elts[2] != "R":
                             question = Question.objects.get(pk=id_elts[3])
                             ans, _ = Answer.objects.get_or_create(CaseInstance=ci, Question=question)
+                            cleaned_answer = form.cleaned_data[q_id]
                             if id_elts[2] in [Question.MULTIPLECHOICE, Question.NUMERIC]:
-                                ans.AnswerNumeric = form.cleaned_data[q_id]
-                                ans.save()
+                                if cleaned_answer != '':
+                                    ans.AnswerNumeric = cleaned_answer
+                                    ans.save()
+                                else:
+                                    ans.delete()
                             elif id_elts[2] == Question.LINE:
                                 # Answer contains a JSON packed annotation
-                                if form.cleaned_data[q_id] != '':
-                                    annotation_data = loads(form.cleaned_data[q_id])
+                                if cleaned_answer != '':
+                                    annotation_data = loads(cleaned_answer)
                                     ans.AnswerText = "{0:.3g} {1}".format(annotation_data['length'],
                                                                           annotation_data['length_unit'])
                                     ans.save()
@@ -424,11 +428,13 @@ def submitcase(request, case_id):
                                 else:
                                     if hasattr(ans, 'answerannotation'):
                                         ans.answerannotation.delete(keep_parents=True)
-                                    ans.AnswerText = ''
-                                    ans.save()
+                                    ans.delete()
                             else:
-                                ans.AnswerText = form.cleaned_data[q_id]
-                                ans.save()
+                                if cleaned_answer != '':
+                                    ans.AnswerText = cleaned_answer
+                                    ans.save()
+                                else:
+                                    ans.delete()
                 if request.POST['submit'] == 'submit':
                     return HttpResponseRedirect(reverse('rateslide:caselist', kwargs={'slug': cs.Caselist.Slug}))
                 else:
