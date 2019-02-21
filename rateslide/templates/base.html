@@ -87,13 +87,13 @@
         
 	  {% endblock body_content %}
         </div>
-    </body>{% endblock body %}
-    <div id="footer">
+        <div id="footer">
         {% block body_footer %}
             {% block body_footer_breadcrumb %}{% endblock body_footer_breadcrumb %}
             {% block body_footer_legal %}{% endblock body_footer_legal %}
         {% endblock body_footer %}
         </div>
+    </body>{% endblock body %}
     {% block footer %}
         {% block footer_javascript %}
             {% block footer_javascript_site %}<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>{% endblock footer_javascript_site %}

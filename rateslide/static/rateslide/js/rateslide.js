@@ -137,9 +137,9 @@ var current_line = "";
 
 function initialize_case() {
     if (!annotations) {
-        annotations = new OpenSeadragon.Annotations({viewer});
+        annotations = new OpenSeadragon.Annotations({"viewer":viewer});
         annotations.EnableControls(false);
-        annotations.model.addHandler('ANNOTATIONRELEASE_EVENT', (annotation) => {
+        annotations.model.addHandler('ANNOTATIONRELEASE_EVENT', function(annotation) {
             var unitname = "px";
             if (current_line) {
                 var l = annotations.getLength(annotation);
@@ -156,19 +156,19 @@ function initialize_case() {
                     slideid: get_slideid(viewer_image),
                     length: l,
                     length_unit: unitname,
-                    annotation: annotation.slice(0, 2),
+                    annotation: annotation.slice(0, 2)
                 };
                 document.getElementById(current_line + "-length").value = l.toPrecision(3) + " " + unitname;
                 document.getElementById(current_line).value = JSON.stringify(line_object);
             }
         });
-        viewer.addHandler('open', () => {
+        viewer.addHandler('open', function() {
             // Check if there are annotations for this image
-            const linefields = document.getElementsByClassName('rs-line-value');
-            var slide_annotations = []
-            for (let index = 0; index < linefields.length; index += 1) {
+            linefields = document.getElementsByClassName('rs-line-value');
+            var slide_annotations = [];
+            for (index = 0; index < linefields.length; index += 1) {
                 if (linefields[index].value !== "") {
-                    const line_object = JSON.parse(linefields[index].value);
+                    line_object = JSON.parse(linefields[index].value);
                     if (line_object.slideid == get_slideid(viewer_image)) {
                         line_object.annotation.push(linefields[index].id);
                         slide_annotations.push(line_object.annotation);
@@ -182,16 +182,16 @@ function initialize_case() {
 
 function initialize_report() {
     if (!annotations) {
-        annotations = new OpenSeadragon.Annotations({viewer});
+        annotations = new OpenSeadragon.Annotations({"viewer":viewer});
         annotations.EnableControls(false);
-        viewer.addHandler('open', () => {
+        viewer.addHandler('open', function() {
             // Check if there are annotations for this image
-            const firstannotation = document.getElementsByClassName('show_annotations');
+            firstannotation = document.getElementsByClassName('show_annotations');
             if (firstannotation.length > 0) {
 
-                case_annotations = JSON.parse(firstannotation[0].value)
-                var slide_annotations = []
-                for (let index = 0; index < case_annotations.length; index += 1) {
+                case_annotations = JSON.parse(firstannotation[0].value);
+                var slide_annotations = [];
+                for (index = 0; index < case_annotations.length; index += 1) {
                     if (case_annotations[index].slideid == get_slideid(viewer_image)) {
                         slide_annotations.push(case_annotations[index].annotation);
                     }
