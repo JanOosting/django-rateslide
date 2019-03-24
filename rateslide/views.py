@@ -3,18 +3,10 @@
 # 
 from json import dumps, loads
 import logging
-import string
-import random
+
 from os import path
 from collections import Counter
 from statistics import mean, stdev
-
-import matplotlib
-# Force matplotlib to not use any UI backend.
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize, to_hex
-import numpy as np
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404, HttpResponse, JsonResponse
@@ -32,7 +24,14 @@ from .models import Case, Question, CaseInstance, Answer, AnswerAnnotation, Case
                    QuestionBookmark, QuestionItem
 from .forms import CaseListForm, UserCaseListSelectFormSet, tempUserFormSet, CaseInstancesSelectFormSet, \
                    CasesSelectFormSet, QuestionForm
-from .utils import send_usercaselist_mail
+from .utils import send_usercaselist_mail, create_anonymous_user
+
+import numpy as np
+import matplotlib
+# Force matplotlib to not use any UI backend.
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize, to_hex
 
 
 logger = logging.getLogger(__name__)
@@ -139,10 +138,18 @@ def submitcaselist(request, caselist_id):
     return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'slug': cl.Slug}))
 
 
+def deleteemptyanonymoususercaselists(cl):
+    ucl = UserCaseList.objects.filter(CaseList=cl, User__first_name='Anonymous', User__last_name='User')
+    for user in ucl:
+        if user.case_count_completed() == 0:
+            user.delete()
+
+
 @csrf_protect
 @login_required()
 def submitcaselistusers(request, caselist_id):
     if request.method == "POST":
+        cl = CaseList.objects.get(pk=caselist_id)
         ucl = tempUserFormSet(request.POST, request.FILES)
         if ucl.is_valid():
             if request.POST['submit'] == 'submitactivate':
@@ -160,9 +167,13 @@ def submitcaselistusers(request, caselist_id):
                         user = UserCaseList.objects.get(pk=userform.cleaned_data['id'])
                         if user.Status == UserCaseList.ACTIVE:
                             send_usercaselist_mail(user, 'reminder')
+            if request.POST['submit'] == 'deleteinactiveanonymous':
+                deleteemptyanonymoususercaselists(cl)
         else:
-            raise Exception("notvalid")
-    return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'caselist_id': caselist_id}))
+            raise Exception('notvalid')
+    else:
+        raise Exception('notvalid')
+    return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'slug':  cl.Slug}))
 
 
 @csrf_protect
@@ -207,10 +218,6 @@ def submitusercaselist(request, usercaselist_id):
     return HttpResponseRedirect(reverse('rateslide:usercaselist', kwargs={'usercaselist_id': usercaselist_id}))
 
 
-def random_string(length):
-    return ''.join(random.choice(string.ascii_letters) for _ in range(length))
-
-
 def get_cookie_user(request, mustexist):
     if "slideobs_user" in request.COOKIES or mustexist:
         users = User.objects.filter(username=request.COOKIES["slideobs_user"])
@@ -220,7 +227,7 @@ def get_cookie_user(request, mustexist):
             raise Http404
     else:
         # Firsttime access, create a new session user
-        user = User.objects.create_user(username=random_string(30), first_name='Anonymous', last_name='User')
+        user = create_anonymous_user()
         request.COOKIES['slideobs_user'] = user.username
         return user
 
@@ -408,7 +415,7 @@ def submitcase(request, case_id):
                             ans, _ = Answer.objects.get_or_create(CaseInstance=ci, Question=question)
                             cleaned_answer = form.cleaned_data[q_id]
                             if id_elts[2] in [Question.MULTIPLECHOICE, Question.NUMERIC]:
-                                if cleaned_answer != '' and cleaned_answer != None:
+                                if cleaned_answer != '' and cleaned_answer is not None:
                                     ans.AnswerNumeric = cleaned_answer
                                     ans.save()
                                 else:

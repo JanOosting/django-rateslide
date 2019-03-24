@@ -1,7 +1,12 @@
+import string
+import random
+
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.template import Template
+
+from .models import User
 
 
 def get_usercaselist_mailbody(usercaselist, mail_type):
@@ -41,3 +46,11 @@ def get_mailbody(context, templatestr):
 def send_usercaselist_mail(usercaselist, mail_type):
     send_mail(mail_type, get_usercaselist_mailbody(usercaselist, mail_type), usercaselist.CaseList.Owner.email,
               [usercaselist.User.email])
+
+
+def random_string(length):
+    return ''.join(random.choice(string.ascii_letters) for _ in range(length))
+
+
+def create_anonymous_user():
+    return User.objects.create_user(username=random_string(30), first_name='Anonymous', last_name='User')
