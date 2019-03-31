@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -32,6 +34,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = ('Case',)
     radio_fields = {"Type": admin.VERTICAL}
     inlines = [QuestionItemInline]
+
 
 admin.site.register(Question, QuestionAdmin)
 
@@ -100,7 +103,24 @@ class CaseAdminSite(AdminSite):
         # Removed check for is_staff.
         return request.user.is_active
 
-case_admin_site = CaseAdminSite(name='caseadm')
-# Run user_admin_site.register() for each model we wish to register
 
+case_admin_site = CaseAdminSite(name='caseadm')
 case_admin_site.register(Case, CaseAdmin)
+
+
+class NewUserAdmin(UserAdmin):
+    actions = ['delete_inactive_anonymous_users']
+
+    def delete_inactive_anonymous_users(self, request, queryset):
+        anonymous_users = User.objects.filter(first_name='Anonymous', last_name='User')
+        for user in anonymous_users:
+            ucls = UserCaseList.objects.filter(User=user)
+            answered_cases = 0
+            for ucl in ucls:
+                answered_cases += ucl.case_count_completed()
+            if answered_cases == 0:
+                user.delete()
+
+
+admin.site.unregister(User)
+admin.site.register(User, NewUserAdmin)

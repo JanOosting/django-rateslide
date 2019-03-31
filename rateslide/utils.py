@@ -52,5 +52,9 @@ def random_string(length):
     return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
 
+ANONONYMOUS_NAME_LENGTH = 30
+
+
 def create_anonymous_user():
-    return User.objects.create_user(username=random_string(30), first_name='Anonymous', last_name='User')
+    return User.objects.create_user(username=random_string(ANONONYMOUS_NAME_LENGTH),
+                                    first_name='Anonymous', last_name='User')
