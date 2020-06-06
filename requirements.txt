@@ -1,3 +1,3 @@
 -e git+https://github.com/JanOosting/django-invitation.git#egg=django_invitation-dev
 -e git+https://github.com/JanOosting/django-histoslide.git#egg=django_histoslide-dev
--e git+https://github.com/JanOosting/dj-nested-inlines.git#egg=dj_nested_inlines-dev
+

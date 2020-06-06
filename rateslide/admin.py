@@ -6,7 +6,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
-from nested_inlines.admin import NestedModelAdmin, NestedStackedInline, NestedTabularInline
+from nested_admin.nested import NestedModelAdmin, NestedStackedInline, NestedTabularInline
 
 from .models import Case, CaseList, Question, QuestionItem, UserCaseList, CaseSlide, CaseBookmark
 
