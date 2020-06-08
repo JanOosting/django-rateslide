@@ -43,6 +43,7 @@ class CaseList(models.Model):
     EndDate = models.DateTimeField(null=True, blank=True)
     Status = models.CharField(max_length=10, blank=True)
     Users = models.ManyToManyField(User, through='UserCaseList')
+    SlideBase = models.CharField(max_length=200, blank=True)
     
     def cases(self):
         # get a set of case ids for this caselist

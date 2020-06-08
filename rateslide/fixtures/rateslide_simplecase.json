@@ -1,7 +1,7 @@
 [{"model": "histoslide.slide", "pk": 1, "fields": {"Name": "Slide 1", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "test/test.tiff"}},
-
+ {"model": "histoslide.slide", "pk": 2, "fields": {"Name": "Demo Slide 2", "ScannedBy": "tester", "ScannedDate": "2016-10-10" , "InsertedBy": "tester", "InsertedDate": "2016-10-10",  "SlideType": 2, "UrlPath": "demo/test.tiff"}},
  {"model": "rateslide.caselist", "pk": 1, "fields": {"Name": "Simple Case", "Abstract": "Simple Case Abstract", "Description": "Simple Case Description",
-     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "O", "ObserversPerCase": 0, "Owner": 3,
+     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "O", "ObserversPerCase": 0, "Owner": 3, "SlideBase": "",
      "VisibleForNonUsers": true, "OpenForRegistration": true, "SelfRegistration": true, "StartDate": "2016-10-10T0:0:0Z", "EndDate": "2026-10-10T0:0:0Z", "Status": "", "Slug": "simple-case"}},
  {"model": "rateslide.case", "pk": 1, "fields": {"Name": "Case 1", "Caselist": 1, "Order": 1, "Introduction": "Introduction Case", "Report": ""}},
  {"model": "rateslide.question", "pk": 1, "fields": {"Case": 1, "Type": "M", "Order": 1, "Text": "How many legs has a duck", "Required": true, "CorrectAnswer": "2"}},
@@ -28,7 +28,7 @@
  {"model": "rateslide.answer", "pk": 1, "fields": {"CaseInstance": 1, "Question": 1, "AnswerNumeric": 2, "AnswerText": ""}},
 
  {"model": "rateslide.caselist", "pk": 2, "fields": {"Name": "Simple Showcase", "Abstract": "Simple Showcase Abstract", "Description": "Simple Showcase Description",
-     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "S", "ObserversPerCase": 0, "Owner": 3,
+     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "S", "ObserversPerCase": 0, "Owner": 3, "SlideBase": "test",
      "VisibleForNonUsers": true, "OpenForRegistration": true, "SelfRegistration": true, "StartDate": "2016-10-10T0:0:0Z", "EndDate": "2026-10-10T0:0:0Z", "Status": "", "Slug": "simple-showcase"}},
  {"model": "rateslide.case", "pk": 2, "fields": {"Name": "Showcase 1", "Caselist": 2, "Order": 1, "Introduction": "Introduction Showcase", "Report": ""}},
 

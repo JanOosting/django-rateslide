@@ -13,7 +13,7 @@ from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark
 class CaseListForm(ModelForm):
     class Meta:
         model = CaseList
-        fields = ['Name', 'Abstract', 'Description', 'Type', 'ObserversPerCase', 'VisibleForNonUsers',
+        fields = ['Name', 'Abstract', 'Description', 'SlideBase', 'Type', 'ObserversPerCase', 'VisibleForNonUsers',
                   'OpenForRegistration', 'SelfRegistration', 'EndDate', 'WelcomeMail', 'InviteMail', 'ReminderMail']
 
 

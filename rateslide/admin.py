@@ -19,7 +19,7 @@ class UserCaseListInline(admin.TabularInline):
     """
     model = UserCaseList
     extra = 1
-    
+
 
 class QuestionItemInline(admin.TabularInline):
     """ Enable editing of multiple choice items for questions
@@ -44,6 +44,18 @@ class CaseSlideInline(NestedTabularInline):
     """
     model = CaseSlide
     extra = 1
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+
+        field = super(CaseSlideInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+        if db_field.name == 'Slide':
+            if request._obj_ is not None:
+                case = Case.objects.get(id=request.resolver_match.kwargs['object_id'])
+                field.queryset = field.queryset.filter(UrlPath__startswith=case.Caselist.SlideBase)
+            else:
+                field.queryset = field.queryset.none()
+        return field
 
 
 class CaseBookmarkInline(NestedTabularInline):
@@ -90,8 +102,12 @@ class CaseAdmin(NestedModelAdmin):
         if '_continue' not in request.POST:
             return HttpResponseRedirect(reverse('rateslide:caselistadmin', args=(obj.Caselist.Slug, )))
         else:
-            return super(CaseAdmin, self).response_change(request, obj)    
+            return super(CaseAdmin, self).response_change(request, obj)
 
+    def get_form(self, request, obj=None, **kwargs):
+        # just save obj reference for future processing in Inline
+        request._obj_ = obj
+        return super(CaseAdmin, self).get_form(request, obj, **kwargs)
 
 # Use the admin view for cases for caselist owners
 # http://www.tryolabs.com/Blog/2012/06/18/django-administration-interface-non-staff-users/

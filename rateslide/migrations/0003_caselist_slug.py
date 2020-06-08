@@ -27,8 +27,9 @@ class Migration(migrations.Migration):
             name='Slug',
             field=django_extensions.db.fields.AutoSlugField(editable=False, null=True, blank=True, populate_from='Name', overwrite=True),
         ),
-        migrations.RunPython(
-            migrate_data_forward,
-            migrate_data_backward,
-        ),
+        # Conflicts with later alteration of model.
+        #migrations.RunPython(
+        #    migrate_data_forward,
+        #    migrate_data_backward,
+        #),
     ]

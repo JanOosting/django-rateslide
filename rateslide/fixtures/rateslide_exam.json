@@ -1,5 +1,5 @@
 [{"model": "rateslide.caselist", "pk": 1, "fields": {"Name": "Important exam", "Abstract": "Exam", "Description": "Handle all cases",
-     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "E", "ObserversPerCase": 0, "Owner": 3,
+     "InviteMail": "Inviting", "WelcomeMail": "Welcoming", "ReminderMail": "Reminder", "Type": "E", "ObserversPerCase": 0, "Owner": 3, "SlideBase": "",
      "VisibleForNonUsers": false, "OpenForRegistration": true, "SelfRegistration": false, "StartDate": "2016-10-10T0:0:0Z", "EndDate": "2026-10-10T0:0:0Z", "Status": "", "Slug": "important-exam"}},
  {"model": "rateslide.case", "pk": 1, "fields": {"Name": "Exam case 1", "Caselist": 1, "Order": 1, "Introduction": "Introduction Case 1", "Report": ""}},
  {"model": "rateslide.case", "pk": 2, "fields": {"Name": "Exam case 2", "Caselist": 1, "Order": 2, "Introduction": "Introduction Case 2", "Report": ""}},
