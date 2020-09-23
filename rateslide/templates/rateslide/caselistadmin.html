@@ -27,6 +27,7 @@
         	<td>{{ UserForm.instance.get_Status_display }}</td><td>{{ UserForm.instance.case_count_completed }} / {{ UserForm.instance.case_count_total }}</td></tr>
         {% endfor %}
         </table>
+        <p>Anonymous users : {{ UserDict.AnonymousUsers }}</p>
         <button id="submitactivate" name="submit" type="submit" value="submitactivate">Activate Pending</button>
         <button id="submitreminder" name="submit" type="submit" value="submitreminder">Send reminder</button>
         <button id="deleteinactiveanonymous" name="submit" type="submit" value="deleteinactiveanonymous">Delete inactive anonymous</button>

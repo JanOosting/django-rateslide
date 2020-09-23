@@ -83,7 +83,8 @@ def get_caselist_data(request, cl):
     ud['ActiveUsers'] = clu.filter(Status=UserCaseList.ACTIVE).count()
     ud['PendingUsers'] = clu.filter(Status=UserCaseList.PENDING).count()
     ud['CompleteUsers'] = clu.filter(Status=UserCaseList.COMPLETE).count()
-    return {'CaseList': cl, 'Users': clu, 'UserDict': ud}
+    ud['AnonymousUsers'] = clu.filter(User__first_name='Anonymous', User__last_name='User').count()
+    return {'CaseList': cl, 'Users': clu.exclude(User__first_name='Anonymous', User__last_name='User'), 'UserDict': ud}
 
 
 def caselist(request, slug):
@@ -150,27 +151,28 @@ def deleteemptyanonymoususercaselists(cl):
 def submitcaselistusers(request, caselist_id):
     if request.method == "POST":
         cl = CaseList.objects.get(pk=caselist_id)
-        ucl = tempUserFormSet(request.POST, request.FILES)
-        if ucl.is_valid():
-            if request.POST['submit'] == 'submitactivate':
-                for userform in ucl:
-                    if userform.cleaned_data['selected']:
-                        user = UserCaseList.objects.get(pk=userform.cleaned_data['id'])
-                        if user.Status == UserCaseList.PENDING:
-                            # Set all selected users to active, send mail
-                            user.Status = UserCaseList.ACTIVE
-                            user.save()
-                            send_usercaselist_mail(user, 'welcome')
-            if request.POST['submit'] == 'submitreminder':
-                for userform in ucl:
-                    if userform.cleaned_data['selected']:
-                        user = UserCaseList.objects.get(pk=userform.cleaned_data['id'])
-                        if user.Status == UserCaseList.ACTIVE:
-                            send_usercaselist_mail(user, 'reminder')
-            if request.POST['submit'] == 'deleteinactiveanonymous':
-                deleteemptyanonymoususercaselists(cl)
+        if request.POST['submit'] == 'deleteinactiveanonymous':
+            deleteemptyanonymoususercaselists(cl)
         else:
-            raise Exception('notvalid')
+            ucl = tempUserFormSet(request.POST, request.FILES)
+            if ucl.is_valid():
+                if request.POST['submit'] == 'submitactivate':
+                    for userform in ucl:
+                        if userform.cleaned_data['selected']:
+                            user = UserCaseList.objects.get(pk=userform.cleaned_data['id'])
+                            if user.Status == UserCaseList.PENDING:
+                                # Set all selected users to active, send mail
+                                user.Status = UserCaseList.ACTIVE
+                                user.save()
+                                send_usercaselist_mail(user, 'welcome')
+                if request.POST['submit'] == 'submitreminder':
+                    for userform in ucl:
+                        if userform.cleaned_data['selected']:
+                            user = UserCaseList.objects.get(pk=userform.cleaned_data['id'])
+                            if user.Status == UserCaseList.ACTIVE:
+                                send_usercaselist_mail(user, 'reminder')
+            else:
+                raise Exception('notvalid')
     else:
         raise Exception('notvalid')
     return HttpResponseRedirect(reverse('rateslide:caselistadmin', kwargs={'slug':  cl.Slug}))

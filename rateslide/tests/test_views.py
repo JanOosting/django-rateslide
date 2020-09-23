@@ -1,5 +1,6 @@
 from json import dumps, loads
 
+from django.http import HttpRequest
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -7,7 +8,7 @@ from django.contrib.auth.models import User
 from histoslide.models import Slide
 from rateslide.models import CaseBookmark, Case, CaseInstance, QuestionBookmark, Question, CaseList, Answer, \
                              UserCaseList
-from rateslide.views import deleteemptyanonymoususercaselists
+from rateslide.views import deleteemptyanonymoususercaselists, get_caselist_data
 from rateslide.utils import create_anonymous_user
 from .utils import populate_answers
 
@@ -340,35 +341,37 @@ class BookmarkTests(TestCase):
         self.assertEqual(response.status_code, 404, 'object should be deleted by previous call')
 
 
+def createcaselist(cltype):
+    cl = CaseList.objects.create(Name='admintest',
+                                 Owner=User.objects.get(username='caselistowner'),
+                                 Abstract='abstract',
+                                 Description='description',
+                                 InviteMail='-',
+                                 WelcomeMail='-',
+                                 ReminderMail='-',
+                                 Type=cltype)
+    Case.objects.create(Name='admintest-case', Caselist=cl, Introduction='intro')
+    return cl
+
+
 class CaseListAdminTests(TestCase):
     fixtures = ['rateslide_auth.json', 'rateslide_simplecase.json']
 
-    def CreateCaseList(self, cltype):
-        cl = CaseList.objects.create(Name='admintest',
-                                     Owner=User.objects.get(username='caselistowner'),
-                                     Abstract='abstract',
-                                     Description='description',
-                                     InviteMail='-',
-                                     WelcomeMail='-',
-                                     ReminderMail='-',
-                                     Type=cltype)
-        Case.objects.create(Name='admintest-case', Caselist=cl, Introduction='intro')
-        return cl
-
-    def test_DeleteEmptyAnonymousUserCaseLists_no_users(self):
-        caselist = self.CreateCaseList(CaseList.EXAMINATION)
+    def prepare_anonymous_users_in_caselist(self):
+        caselist = createcaselist(CaseList.EXAMINATION)
         caselist.VisibleForNonUsers = True  # Make sure anonymous is accepted
         caselist.save()
         self.client.login(username='caselistowner', password='caselistowner')
+        return caselist
+
+    def test_DeleteEmptyAnonymousUserCaseLists_no_users(self):
+        caselist = self.prepare_anonymous_users_in_caselist()
         usercount = caselist.user_count()
         deleteemptyanonymoususercaselists(caselist)
         self.assertEqual(caselist.user_count(), usercount, 'nothing happened')
 
     def test_DeleteEmptyAnonymousUserCaseLists_single__empty_anonymous(self):
-        caselist = self.CreateCaseList(CaseList.EXAMINATION)
-        caselist.VisibleForNonUsers = True  # Make sure anonymous is accepted
-        caselist.save()
-        self.client.login(username='caselistowner', password='caselistowner')
+        caselist = self.prepare_anonymous_users_in_caselist()
         user = create_anonymous_user()
         UserCaseList.objects.create(User=user, CaseList=caselist, Status=UserCaseList.ACTIVE)
         usercount = caselist.user_count()
@@ -377,11 +380,19 @@ class CaseListAdminTests(TestCase):
         self.assertEqual(caselist.user_count(), usercount-1, 'inactive anonymous user deleted')
         self.assertEqual(ucl.count(), 0, 'the just creasted user is not in UserCaseList anymore')
 
+    def test_DeleteEmptyAnonymousUserCaseLists_multiple__empty_anonymous(self):
+        caselist = self.prepare_anonymous_users_in_caselist()
+        user = create_anonymous_user()
+        UserCaseList.objects.create(User=user, CaseList=caselist, Status=UserCaseList.ACTIVE)
+        UserCaseList.objects.create(User=create_anonymous_user(), CaseList=caselist, Status=UserCaseList.ACTIVE)
+        usercount = caselist.user_count()
+        deleteemptyanonymoususercaselists(caselist)
+        ucl = UserCaseList.objects.filter(CaseList=caselist, User=user)
+        self.assertEqual(caselist.user_count(), usercount-2, 'inactive anonymous user deleted')
+        self.assertEqual(ucl.count(), 0, 'the just creasted user is not in UserCaseList anymore')
+
     def test_DeleteEmptyAnonymousUserCaseLists_single_active_anonymous(self):
-        caselist = self.CreateCaseList(CaseList.EXAMINATION)
-        caselist.VisibleForNonUsers = True  # Make sure anonymous is accepted
-        caselist.save()
-        self.client.login(username='caselistowner', password='caselistowner')
+        caselist = self.prepare_anonymous_users_in_caselist()
         user = create_anonymous_user()
         UserCaseList.objects.create(User=user, CaseList=caselist, Status=UserCaseList.ACTIVE)
         CaseInstance.objects.create(Case=Case.objects.get(Name='admintest-case'), User=user, Status=CaseInstance.ENDED)
@@ -390,3 +401,22 @@ class CaseListAdminTests(TestCase):
         ucl = UserCaseList.objects.filter(CaseList=caselist, User=user)
         self.assertEqual(caselist.user_count(), usercount, 'active anonymous user is not deleted')
         self.assertEqual(ucl.count(), 1, 'the just creasted user is still in UserCaseList')
+
+    def test_Do_not_show_anonymous(self):
+        caselist = self.prepare_anonymous_users_in_caselist()
+        anoninactiveuser = create_anonymous_user()
+        UserCaseList.objects.create(User=anoninactiveuser, CaseList=caselist, Status=UserCaseList.ACTIVE)
+        anonactiveuser = create_anonymous_user()
+        UserCaseList.objects.create(User=anonactiveuser, CaseList=caselist, Status=UserCaseList.ACTIVE)
+        CaseInstance.objects.create(Case=Case.objects.get(Name='admintest-case'), User=anonactiveuser,
+                                    Status=CaseInstance.ENDED)
+        inactiveuser = User.objects.create_user(username='MyActive', first_name='Active', last_name='User')
+        UserCaseList.objects.create(User=inactiveuser, CaseList=caselist, Status=UserCaseList.ACTIVE)
+
+        ucl = UserCaseList.objects.filter(CaseList=caselist)
+        self.assertEqual(ucl.count(), 4, 'All users added')
+
+        request = HttpRequest()
+        request.user = User.objects.get(username='caselistowner')
+        ucldata = get_caselist_data(request, caselist)
+        self.assertEqual(ucldata['Users'].count(), 2, 'Only contains MyActive and caselistowner')
