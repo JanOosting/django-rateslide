@@ -45,6 +45,7 @@
 {% for case in CaseList.case_set.all %}
 <p>{{ case.Name }} <a href="{% url 'rateslide:case' case.id %}">Test case</a>
 	<a href="{% url 'caseadm:rateslide_case_change' case.id %}">Edit case</a>
+	<a href="{% url 'rateslide:casecopy' case.id %}">Copy case</a>
 </p>
 {% endfor %}
 <hr>

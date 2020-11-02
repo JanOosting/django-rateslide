@@ -129,6 +129,13 @@ def caselistreport(request, slug):
     return render(request, 'rateslide/caselistreport.html', cldata)
 
 
+@login_required()
+def casecopy(request, case_id):
+    c = Case.objects.get(pk=case_id)
+    newcase = c.copy_case()
+    return HttpResponseRedirect(reverse('caseadm:rateslide_case_change', args={newcase.pk, }))
+
+
 @csrf_protect
 @login_required()
 def submitcaselist(request, caselist_id):

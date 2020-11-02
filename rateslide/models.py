@@ -140,6 +140,7 @@ class Case(models.Model):
         for caseslide in CaseSlide.objects.filter(Case=self):
             new_caseslide = CaseSlide(Case=new_case, Slide=caseslide.Slide, order=caseslide.order)
             new_caseslide.save()
+        return new_case
 
     
 class CaseInstance(models.Model):
