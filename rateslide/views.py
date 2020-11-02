@@ -130,6 +130,18 @@ def caselistreport(request, slug):
 
 
 @login_required()
+def caseadd(request, slug):
+    try:
+        cldata = get_caselist_data_by_slug(request, slug)
+        if not is_caselist_admin(request.user, cldata['CaseList']):
+            raise Http404
+    except CaseList.DoesNotExist:
+        raise Http404
+    c = Case.objects.create(Caselist = cldata['CaseList'], Name = '-- New Case --', Order = 0)
+    return HttpResponseRedirect(reverse('caseadm:rateslide_case_change', args={c.pk, }))
+
+
+@login_required()
 def casecopy(request, case_id):
     c = Case.objects.get(pk=case_id)
     newcase = c.copy_case()

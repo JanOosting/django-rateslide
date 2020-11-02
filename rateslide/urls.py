@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^usercaselist/(?P<usercaselist_id>\d+)/$', views.usercaselist, name='usercaselist'),
     url(r'^submitusercaselist/(?P<usercaselist_id>\d+)/$', views.submitusercaselist, name='submitusercaselist'),
     url(r'^case/(?P<case_id>\d+)/$', views.case, name='case'),
+    url(r'^caseadd/(?P<slug>.+)/$', views.caseadd, name='caseadd'),
     url(r'^casecopy/(?P<case_id>\d+)/$', views.casecopy, name='casecopy'),
     url(r'^showcase/(?P<case_id>\d+)/$', views.showcase, name='showcase'),
     url(r'^casereport/(?P<case_id>\d+)/$', views.casereport, name='casereport'),

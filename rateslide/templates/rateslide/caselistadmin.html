@@ -41,7 +41,7 @@
 {%  endblock body_col1_content %}
 {% block body_col2_content %}
 <h2>Cases</h2>
-<p><a href="{% url 'caseadm:rateslide_case_add' %}">Add case</a></p>
+<p><a href="{% url 'rateslide:caseadd'  CaseList.Slug %}">Add case</a></p>
 {% for case in CaseList.case_set.all %}
 <p>{{ case.Name }} <a href="{% url 'rateslide:case' case.id %}">Test case</a>
 	<a href="{% url 'caseadm:rateslide_case_change' case.id %}">Edit case</a>

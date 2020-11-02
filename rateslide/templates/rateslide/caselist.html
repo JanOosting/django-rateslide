@@ -12,9 +12,11 @@
         {% endif %}
        	{% if UserDict.isAdmin %}
             <p><br><b><a href="{% url 'rateslide:caselistreport' CaseList.Slug %}">Report</a></b></p>
-            <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.Slug %}">Administration</a></b></p>
         {% endif %}
    	{% endif %}
+    {% if UserDict.isAdmin %}
+        <p><br><b><a href="{% url 'rateslide:caselistadmin' CaseList.Slug %}">Administration</a></b></p>
+    {% endif %}
    	<hr>
     {{ CaseList.Abstract|markdown }}
     <hr>
