@@ -201,6 +201,13 @@ class CaseTests(TestCase):
         response = self.client.get(url)
         self.assertContains(response, 'questionreport', count=1)
 
+    def test_caseeval_loads(self):
+        caseinstance = CaseInstance.objects.get(pk=2)
+        self.client.login(username='user', password='user')
+        url = reverse('rateslide:caseeval', kwargs={'caseinstance_id': caseinstance.id})
+        self.client.get(url)
+
+
 
 class BookmarkTests(TestCase):
     fixtures = ['rateslide_auth.json', 'rateslide_simplecase.json']

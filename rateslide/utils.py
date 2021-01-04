@@ -1,12 +1,12 @@
 import string
 import random
 
+from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.template import Template
-
-from .models import User
+from django.template.defaulttags import register
 
 
 def get_usercaselist_mailbody(usercaselist, mail_type):
@@ -58,3 +58,9 @@ ANONONYMOUS_NAME_LENGTH = 30
 def create_anonymous_user():
     return User.objects.create_user(username=random_string(ANONONYMOUS_NAME_LENGTH),
                                     first_name='Anonymous', last_name='User')
+
+@register.filter
+def get_choice(choices, value):
+    for li in choices:
+        if li[0]==value:
+            return li[1]

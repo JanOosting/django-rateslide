@@ -281,6 +281,7 @@ def case(request, case_id):
         editor = is_caselist_admin(user, c.Caselist)
         q_f = QuestionForm(c, user)
         # Register that user started on this case
+
     except Case.DoesNotExist:
         raise Http404
     response = render(request, 'rateslide/case.html', {'Case': c, 'Slides': s, 'Questions': q_f, 'Editor': editor})
@@ -298,6 +299,23 @@ def showcase(request, case_id):
         raise Http404
     return render(request, 'rateslide/showcase.html', {'Case': c, 'Slides': s, 'Editor': editor})
 
+def caseeval(request, case_id):
+    try:
+        case = Case.objects.get(pk=case_id)
+        user = get_case_user(request, case.Caselist, False)
+        if not user:
+            raise Http404
+        caseinstance = CaseInstance.objects.filter(Case=case, User=user).first()
+        if not caseinstance:
+            raise Http404
+    except Case.DoesNotExist:
+        raise Http404
+    s = case.Slides.all().order_by('caseslide__order')
+    q_f = QuestionForm(case, user)
+    response = render(request, 'rateslide/caseeval.html', {'Case': case, 'Slides': s, 'Questions': q_f})
+    if 'slideobs_user' in request.COOKIES and user.email == '':
+        response.set_cookie('slideobs_user', user.username, max_age=604800)
+    return response
 
 def next_case(request, slug):
     # Get a unprocessed case from the user
@@ -463,7 +481,9 @@ def submitcase(request, case_id):
                                     ans.save()
                                 else:
                                     ans.delete()
-                if request.POST['submit'] == 'submit':
+                if cs.Report != "" and cs.Caselist.Type == CaseList.EXAMINATION:
+                    return HttpResponseRedirect(reverse('rateslide:caseeval', kwargs={'case_id': case_id}))
+                elif request.POST['submit'] == 'submit':
                     return HttpResponseRedirect(reverse('rateslide:caselist', kwargs={'slug': cs.Caselist.Slug}))
                 else:
                     return next_case(request, cs.Caselist.Slug)

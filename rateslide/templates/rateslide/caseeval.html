@@ -1,0 +1,73 @@
+{% extends "rateslide/base.html" %}
+{% load static %}
+{% block head_css_page %}
+    <link rel="stylesheet" type="text/css" href="{%  static 'rateslide/css/case.css' %}" />
+{% endblock head_css_page %}
+{% block body_col1_content %}
+    <div id = "thumbnails" class = "thumbnails">
+        <ul class="form-button-radio">
+        {% for Slide in Slides %}
+           <li>
+           {%if forloop.first %}
+               <input id="slide{{ Slide.pk }}" name="slides" class="slide_link" type="radio" checked="checked">
+           {% else %}
+               <input id="slide{{ Slide.pk }}" name="slides" class="slide_link" type="radio">
+           {% endif %}
+           <label for="slide{{ Slide.pk }}" name="slides">{{ Slide.Name }}</label>
+           </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div id="casebookmarks" class="bookmarks">
+        <br>{% for Bookmark in Case.casebookmark_set.all %}
+            <button type="button" class="goto_casebookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
+        {% endfor %}
+    </div>
+    <div id = "questions">
+        {% block body_questions %}
+            {% load markdown_deux_tags %}
+            <h2>{{ Case.Name }} Evaluation</h2>
+            <hr>
+            {{ Case.Introduction|markdown }}
+            <hr>
+            {{ Case.Report|markdown }}
+            <hr>
+            {% csrf_token %}
+            {% for Question in Questions %}
+                <br>
+                {{ Question.label|markdown }}
+                {% for Bookmark in Question.field.widget.attrs.bookmarks %}
+                    <button type="button" class="goto_questionbookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
+                {% endfor %}
+                {%  if Question.field.choices|length > 0 %}
+                {{ Question.field.choices|get_choice:Question.value }}
+                {% else %}
+                {{ Question.value }}
+                {% endif %}
+            {% endfor %}
+            <hr>
+            <p><a href="{% url 'rateslide:caselist' Case.Caselist.Slug %}">To case list</a></p>
+        {% endblock body_questions %}
+    </div>
+{% endblock body_col1_content %}
+
+{% block body_slide %}
+    <div id = "slidepane"></div>
+{% endblock body_slide %}
+
+{% block footer_javascript_page %}
+    <script type="text/javascript" src="{%  static '/histoslide/js/openseadragon.min.js' %}"></script>
+    <script type="text/javascript" src="{%  static '/histoslide/js/openseadragon-scalebar.js' %}"></script>
+    <script type="text/javascript" src="{%  static '/histoslide/js/openseadragon-annotations.js' %}"></script>
+    <script type="text/javascript" src="{%  static '/histoslide/js/histoslide.js' %}"></script>
+    <script type="text/javascript" src="{%  static '/rateslide/js/rateslide.js' %}"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            bm_goto = false;
+            open_slide("/histoslide/{{ Slides.0.pk }}.dzi");
+            initialize_case()
+        });
+    </script>
+{% endblock footer_javascript_page %}
+
