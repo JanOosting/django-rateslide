@@ -311,8 +311,21 @@ def caseeval(request, case_id):
     except Case.DoesNotExist:
         raise Http404
     s = case.Slides.all().order_by('caseslide__order')
-    q_f = QuestionForm(case, user)
-    response = render(request, 'rateslide/caseeval.html', {'Case': case, 'Slides': s, 'Questions': q_f})
+    questions = Question.objects.filter(Case=case)
+    caseinstance = CaseInstance.objects.filter(Case=case, User=user).first()
+    if caseinstance:
+        answers = Answer.objects.filter(CaseInstance=caseinstance).select_related('Question')
+    else:
+        raise Http404
+    for question in questions:
+        answer = answers.filter(Question = question).first()
+        if answer:
+            question.value = answer.textvalue()
+            question.grade = answer.grade()
+
+
+
+    response = render(request, 'rateslide/caseeval.html', {'Case': case, 'Slides': s, 'Questions': questions})
     if 'slideobs_user' in request.COOKIES and user.email == '':
         response.set_cookie('slideobs_user', user.username, max_age=604800)
     return response

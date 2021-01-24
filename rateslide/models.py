@@ -166,6 +166,7 @@ class Question(models.Model):
     DATE = 'D'
     REMARK = 'R'
     LINE = 'L'
+
     question_type_choices = (
         (MULTIPLECHOICE, 'MultipleChoice'),
         (OPENTEXT, 'Open text'),
@@ -209,7 +210,17 @@ class Question(models.Model):
     def fieldid(self):
         return 'question_%s_%s_%s' % ('R' if self.Required else 'F', self.Type, self.id)
 
-       
+    def correcttext(self):
+        if self.Type == Question.MULTIPLECHOICE:
+            mc_choice = QuestionItem.objects.filter(Question=self, Order=self.CorrectAnswer)
+            if mc_choice.count() == 1:
+                return mc_choice[0].Text
+            else:
+                return ''
+        else:
+            return self.CorrectAnswer
+
+
 # Items for multiple choice questions
 class QuestionItem(models.Model):
     Question = models.ForeignKey(Question, on_delete=models.CASCADE)
@@ -227,10 +238,44 @@ class QuestionItem(models.Model):
 
     
 class Answer(models.Model):
+    CORRECT = 'C'
+    ERROR = 'E'
+    NOEVAL = 'S'
+
     CaseInstance = models.ForeignKey(CaseInstance, on_delete=models.CASCADE)
     Question = models.ForeignKey(Question, on_delete=models.CASCADE)
     AnswerNumeric = models.IntegerField(default=0)
     AnswerText = models.TextField(blank=True)
+
+    def textvalue(self):
+        if self.Question.Type == Question.NUMERIC:
+            return self.AnswerNumeric
+        elif self.Question.Type == Question.MULTIPLECHOICE:
+            mc_choice = QuestionItem.objects.filter(Question=self.Question, Order=self.AnswerNumeric)
+            if mc_choice.count() == 1:
+                return mc_choice[0].Text
+            else:
+                return ''
+        elif self.Question.Type == Question.LINE:
+            if hasattr(self, 'answerannotation'):
+                annotation = loads(answer.answerannotation.AnnotationJSON)
+                return dumps({'length': answer.answerannotation.Length,
+                                                         'length_unit': answer.answerannotation.LengthUnit,
+                                                         'slideid': answer.answerannotation.Slide_id,
+                                                         'annotation': annotation})
+            else:
+                return ''
+        else:
+            return self.AnswerText
+
+    def grade(self):
+        if self.Question.CorrectAnswer == '':
+            return Answer.NOEVAL
+        elif self.Question.CorrectAnswer == self.AnswerText or self.Question.CorrectAnswer == str(self.AnswerNumeric):
+            return Answer.CORRECT
+        else:
+            return Answer.ERROR
+
 
 
 class AnswerAnnotation(SlideAnnotation):

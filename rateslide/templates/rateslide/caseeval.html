@@ -34,18 +34,13 @@
             <hr>
             {% csrf_token %}
             {% for Question in Questions %}
-                <br>
-                {{ Question.label|markdown }}
+                {{ Question.Text|markdown }}
                 {% for Bookmark in Question.field.widget.attrs.bookmarks %}
                     <button type="button" class="goto_questionbookmark" value="{{ Bookmark.pk }}">{{ Bookmark.Text}}</button>
                 {% endfor %}
-                {%  if Question.field.choices|length > 0 %}
-                {{ Question.field.choices|get_choice:Question.value }}
-                {% else %}
-                {{ Question.value }}
-                {% endif %}
-            {% endfor %}
+                <br><strong>{{ Question.value }}</strong>{% if Question.grade == "C" %}<img src="{%  static '/rateslide/icons/heavy-check-mark.svg' %}" alt="Correct" width="14" height="14" > {% endif %}  {% if Question.grade == "E" %}<img src="{%  static '/rateslide/icons/heavy-multiplication-x.svg' %}" alt="Error" width="14" height="14" > ({{ Question.correcttext }}){% endif %}
             <hr>
+            {% endfor %}
             <p><a href="{% url 'rateslide:caselist' Case.Caselist.Slug %}">To case list</a></p>
         {% endblock body_questions %}
     </div>
