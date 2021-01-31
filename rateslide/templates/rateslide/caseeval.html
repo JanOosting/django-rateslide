@@ -31,6 +31,8 @@
             {{ Case.Introduction|markdown }}
             <hr>
             {{ Case.Report|markdown }}
+            <br>
+            {{ Case.answers_evaluation }}
             <hr>
             {% csrf_token %}
             {% for Question in Questions %}

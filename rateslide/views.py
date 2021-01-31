@@ -69,6 +69,7 @@ def get_caselist_data(request, cl):
             ud['case_count_completed'] = len(ud['case_completed'])
             ud['case_count_todo'] = len(cl.cases_todo(user.pk))
             ud['case_count_total'] = len(cl.cases_total(user.pk))
+            ud['case_evaluation'] = cl.evaluation(user.pk)
             ud['canAdmit'] = False
         else:
             ud['canAdmit'] = cl.OpenForRegistration
@@ -79,6 +80,7 @@ def get_caselist_data(request, cl):
         ud['case_count_todo'] = 0
         ud['case_count_total'] = 0
         ud['canAdmit'] = cl.OpenForRegistration
+        ud['case_evaluation'] = ''
         ud['isAdmin'] = False
     ud['ActiveUsers'] = clu.filter(Status=UserCaseList.ACTIVE).count()
     ud['PendingUsers'] = clu.filter(Status=UserCaseList.PENDING).count()
@@ -317,13 +319,22 @@ def caseeval(request, case_id):
         answers = Answer.objects.filter(CaseInstance=caseinstance).select_related('Question')
     else:
         raise Http404
+    graded_answers = 0
+    correct_answers = 0
     for question in questions:
         answer = answers.filter(Question = question).first()
         if answer:
             question.value = answer.textvalue()
             question.grade = answer.grade()
+            if question.grade == Answer.ERROR or question.grade == Answer.CORRECT:
+                graded_answers += 1
+                if question.grade == Answer.CORRECT:
+                    correct_answers += 1
 
-
+    if graded_answers>1:
+        case.answers_evaluation = '%d correct of %d' % (correct_answers, graded_answers)
+    else:
+        case.answers_evaluation = ''
 
     response = render(request, 'rateslide/caseeval.html', {'Case': case, 'Slides': s, 'Questions': questions})
     if 'slideobs_user' in request.COOKIES and user.email == '':

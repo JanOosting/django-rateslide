@@ -66,7 +66,7 @@ class CaseList(models.Model):
         user = User.objects.get(pk=user_id)
         return set(CaseInstance.objects.filter(User=user, Status='E',
                                                Case__in=self.cases()).values_list('Case', flat=True))
-    
+
     def case_count_completed(self, user_id):
         return len(self.cases_completed(user_id))
     
@@ -107,7 +107,26 @@ class CaseList(models.Model):
                 return choice(list(cases.values_list('pk', flat=True)))
             else:
                 return -1
-            
+
+    def evaluation(self, user_id):
+        user = User.objects.get(pk=user_id)
+        caseinstances = CaseInstance.objects.filter(User=user, Status='E',
+                                               Case__in=self.cases()).values_list('Case', flat=True)
+        answers = Answer.objects.filter(CaseInstance__in=caseinstances.values('id'))
+        graded_answers = 0
+        correct_answers = 0
+        for answer in answers:
+            grade = answer.grade()
+            if grade == Answer.ERROR or grade == Answer.CORRECT:
+                graded_answers += 1
+                if grade == Answer.CORRECT:
+                    correct_answers += 1
+        if graded_answers > 0:
+            return f'{correct_answers} of {graded_answers}'
+        else:
+            return ''
+
+
     def __str__(self):
         return self.Name
 

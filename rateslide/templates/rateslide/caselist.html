@@ -25,6 +25,7 @@
 {% block body_col2_content %}
     {%  if CaseList.Type == "E" %}
         <h2>Cases</h2>
+        {% if UserDict.case_evaluation %}<p>Correct answers : {{ UserDict.case_evaluation }}</p>{% endif %}
         {% for case in CaseList.case_set.all %}
             {% if case.id in UserDict.case_completed and case.Report != "" %}
                 <p><a href="{% url 'rateslide:caseeval' case.id %}">{{ case.Name }} </a>  <font color="green"><b> OK</b> </font> </p>
