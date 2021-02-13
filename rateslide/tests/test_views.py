@@ -202,9 +202,9 @@ class CaseTests(TestCase):
         self.assertContains(response, 'questionreport', count=1)
 
     def test_caseeval_loads(self):
-        caseinstance = CaseInstance.objects.get(pk=2)
+        case = populate_answers(1)
         self.client.login(username='user', password='user')
-        url = reverse('rateslide:caseeval', kwargs={'caseinstance_id': caseinstance.id})
+        url = reverse('rateslide:caseeval', kwargs={'case_id': case.id})
         self.client.get(url)
 
 

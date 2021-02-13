@@ -1,7 +1,7 @@
 from datetime import date
 
 from django.test import TestCase
-from django.forms.widgets import TextInput, NumberInput, RadioSelect, DateInput, HiddenInput
+from django.forms.widgets import TextInput, NumberInput, RadioSelect, DateInput, HiddenInput, Textarea
 from django.contrib.auth.models import User
 from rateslide.forms import QuestionForm
 
@@ -30,7 +30,7 @@ class QuestionFormTests(TestCase):
         form = QuestionForm(case, None)
         question = Question.objects.get(Case=case, Type=Question.OPENTEXT)
         field = form.fields[question.fieldid()]
-        self.assertTrue(isinstance(field.widget, TextInput))
+        self.assertTrue(isinstance(field.widget, Textarea))
         question = Question.objects.get(Case=case, Type=Question.NUMERIC)
         field = form.fields[question.fieldid()]
         self.assertTrue(isinstance(field.widget, NumberInput))

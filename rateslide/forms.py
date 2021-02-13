@@ -3,7 +3,7 @@ from json import dumps, loads
 from django.forms import ModelForm, Form, Field, CharField, IntegerField, TypedChoiceField, DateField, BooleanField
 from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
-from django.forms.widgets import HiddenInput, RadioSelect
+from django.forms.widgets import HiddenInput, RadioSelect, Textarea
 from django.utils.translation import gettext_lazy as _
 
 from .models import Question, CaseList, UserCaseList, QuestionItem, CaseBookmark, Case, CaseInstance, \
@@ -152,7 +152,7 @@ class QuestionForm(Form):
                         field.widget.attrs.update({'line_length': data[question.fieldid() + '-length']})
                     field.initial = data[question.fieldid()]
             else:  # Use Question.OPENTEXT as fallthrough/default
-                field = CharField(label=question.Text)
+                field = CharField(label=question.Text, widget=Textarea)
 
             field.required = question.Required
 
