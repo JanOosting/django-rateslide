@@ -1,6 +1,6 @@
 # Rateslide views
 # Jan Oosting 2013
-# 
+#
 from json import dumps, loads
 import logging
 
@@ -278,6 +278,8 @@ def case(request, case_id):
             return HttpResponseRedirect(settings.LOGIN_URL)
         if check_usercaselist(user, c.Caselist) != UserCaseList.ACTIVE:
             # TODO: Return message that user is not on caselist
+            raise Http404
+        if not c.Caselist.is_active():
             raise Http404
         s = c.Slides.all().order_by('caseslide__order')
         editor = is_caselist_admin(user, c.Caselist)

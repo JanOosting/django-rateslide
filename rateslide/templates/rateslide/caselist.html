@@ -4,7 +4,7 @@
     <h2>{{ CaseList.Name }}</h2>
     {%  if UserDict.case_count_total > 0 %}
      	<p>{{ UserDict.case_count_completed }}/{{ UserDict.case_count_total }} cases done</p>
-    	{% if UserDict.case_count_todo > 0 %}
+    	{% if UserDict.case_count_todo > 0 and CaseList.is_active %}
     	    <p><br><b><a href="{% url 'rateslide:next-case' CaseList.Slug %}">Rate next case</a></b></p>
    	    {% endif %}
        	{% if UserDict.canAdmit %}
@@ -23,7 +23,13 @@
     {{ CaseList.Description|markdown }}
 {% endblock body_col1_content %}
 {% block body_col2_content %}
-    {%  if CaseList.Type == "E" %}
+    {% if not CaseList.is_active %}
+      <p>The caselist is active between {{ CaseList.StartDate|date:"j-n-Y G:i" }} and {{ CaseList.EndDate|date:"j-n-Y G:i" }}</p>
+      <p>Time until activation {{ CaseList.StartDate|timeuntil }}</p>
+      <p>Time since caselist closed {{ CaseList.EndDate|timesince }}</p>
+      <button type="submit" onClick="window.location.reload()">Refresh</button>
+    {% endif %}
+    {% if CaseList.Type == "E" and CaseList.is_active %}
         <h2>Cases</h2>
         {% if UserDict.case_evaluation %}<p>Correct answers : {{ UserDict.case_evaluation }}</p>{% endif %}
         {% for case in CaseList.case_set.all %}

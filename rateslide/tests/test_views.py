@@ -1,4 +1,6 @@
 from json import dumps, loads
+from testfixtures import Replace, test_datetime
+from datetime import datetime
 
 from django.http import HttpRequest
 from django.test import TestCase
@@ -207,6 +209,41 @@ class CaseTests(TestCase):
         url = reverse('rateslide:caseeval', kwargs={'case_id': case.id})
         self.client.get(url)
 
+    def test_case_get_outside_caselist_active_dates(self):
+        cl = CaseList.objects.get(pk=1)
+        cl.StartDate = datetime(2021, 2, 15, 9, 0)
+        cl.EndDate = datetime(2021, 7, 22, 18, 30)
+        cl.save()
+        self.client.login(username='user', password='user')
+        url = reverse('rateslide:case', kwargs={'case_id': 1})
+        with Replace('rateslide.models.datetime', test_datetime(2021, 1, 18, 1, 2, 3)):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 404, 'Cannot access case before active')
+        with Replace('rateslide.models.datetime', test_datetime(2021, 3, 18, 1, 2, 3)):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, 'Access case in active period')
+        with Replace('rateslide.models.datetime', test_datetime(2021, 1, 18, 1, 2, 3)):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 404, 'Cannot access case after active')
+
+    def test_caselist_no_case_links_outside_active_dates(self):
+        cl = CaseList.objects.get(pk=1)
+        cl.StartDate = datetime(2021, 2, 15, 9, 0)
+        cl.EndDate = datetime(2021, 7, 22, 18, 30)
+        cl.save()
+        url = reverse('rateslide:caselist', kwargs={'slug': 'simple-case'})
+        with Replace('rateslide.models.datetime', test_datetime(2021, 1, 18, 1, 2, 3)):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, 'Rate next case', msg_prefix='Current date is before active period')
+        with Replace('rateslide.models.datetime', test_datetime(2021, 3, 18, 1, 2, 3)):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'Rate next case', count=1, msg_prefix='Current date is in active period')
+        with Replace('rateslide.models.datetime', test_datetime(2022, 1, 18, 1, 2, 3)):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, 'Rate next case', msg_prefix='Current date is after active period')
 
 
 class BookmarkTests(TestCase):

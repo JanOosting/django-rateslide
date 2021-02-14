@@ -1,10 +1,12 @@
 from copy import deepcopy
 from random import choice
+from datetime import datetime, timedelta
 
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models.signals import m2m_changed, post_save
+from django.utils import timezone
 from invitation.models import InvitationKey
 from django_extensions.db.fields import AutoSlugField
 
@@ -12,6 +14,10 @@ from histoslide.models import Slide, SlideAnnotation, SlideBookmark
 
 from .utils import send_usercaselist_mail
 
+
+def default_enddate():
+    # Use datetime 10 years in future
+    return timezone.now()+timedelta(days=3650)
 
 class CaseList(models.Model):
     OBSERVER = 'O'
@@ -39,12 +45,16 @@ class CaseList(models.Model):
     OpenForRegistration = models.BooleanField(help_text='A user can admit himself to this case list', default=False)
     SelfRegistration = models.BooleanField(
         help_text='If false, the owner must accept the admittance of a user to the case list', default=False)
-    StartDate = models.DateTimeField(auto_now_add=True)
-    EndDate = models.DateTimeField(null=True, blank=True)
+    StartDate = models.DateTimeField(default=timezone.now)
+    EndDate = models.DateTimeField(default=default_enddate, blank=True)
     Status = models.CharField(max_length=10, blank=True)
     Users = models.ManyToManyField(User, through='UserCaseList')
     SlideBase = models.CharField(max_length=200, blank=True)
-    
+
+    def is_active(self):
+        currentdate = datetime.now(timezone.utc)
+        return  currentdate > self.StartDate and currentdate < self.EndDate
+
     def cases(self):
         # get a set of case ids for this caselist
         return set(Case.objects.filter(Caselist=self).values_list('pk', flat=True))

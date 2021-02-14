@@ -14,7 +14,7 @@ class CaseListForm(ModelForm):
     class Meta:
         model = CaseList
         fields = ['Name', 'Abstract', 'Description', 'SlideBase', 'Type', 'ObserversPerCase', 'VisibleForNonUsers',
-                  'OpenForRegistration', 'SelfRegistration', 'EndDate', 'WelcomeMail', 'InviteMail', 'ReminderMail']
+                  'OpenForRegistration', 'SelfRegistration', 'StartDate', 'EndDate', 'WelcomeMail', 'InviteMail', 'ReminderMail']
 
 
 class UserCaseListSelectForm(ModelForm):
